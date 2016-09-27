@@ -20,14 +20,14 @@ or clone and run `make install`
 python ntripbrowser.py [-h] [-p PORT] [-v] [-n] [-c] [-t] [-s] url  
 
 positional arguments:  
-  url                   NTRIP soursetable address
+  url                   NTRIP source table address
 
 optional arguments:  
   -h, --help            Show this help message and exit  
-  -p PORT, --port PORT  Change url port. Standart port is 2101  
+  -p PORT, --port PORT  Change url port. Default port is 2101  
   -v, --verbose         Increase output verbosity  
   -n, --nettable        Additional show NET table  
   -c, --cattable        Additional show CAT table  
   -t, --terminal        Redirect output data to terminal  
-  -s, --source          Display url sourse data  
+  -s, --source          Display url source data  
   ```
