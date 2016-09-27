@@ -1,7 +1,30 @@
+# ntripbrowser code is placed under the GPL license.
+# Written by Ivan Sapozhkov (ivan.sapozhkov@emlid.com)
+# Copyright (c) 2016, Emlid Limited
+# All rights reserved.
+
+# If you are interested in using ntripbrowser code as a part of a
+# closed source project, please contact Emlid Limited (info@emlid.com).
+
+# This file is part of ntripbrowser.
+
+# ntripbrowser is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# ntripbrowser is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with ntripbrowser.  If not, see <http://www.gnu.org/licenses/>.
+
 import urllib
-from texttable import Texttable
 import argparse
 import pydoc
+from texttable import Texttable
 
 parser = argparse.ArgumentParser()
 parser.add_argument("url", help="NTRIP url. For example: 78.46.59.40")
