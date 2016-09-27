@@ -27,7 +27,7 @@ import pydoc
 from texttable import Texttable
 
 parser = argparse.ArgumentParser(description='Parse NTRIP soursetable')
-parser.add_argument("url", help="NTRIP url. For example: 78.46.59.40")
+parser.add_argument("url", help="NTRIP soursetable address")
 parser.add_argument("-p", "--port", type=int,
                     help="change url port. Standart port is 2101")
 parser.add_argument("-v", "--verbose", action="store_true",

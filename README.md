@@ -14,19 +14,13 @@ The package was tested with **Python 2.7**
 
 or clone and run `make install`
 
-### Demo
-
-`python ntripbrowser 78.46.59.40`
-
-Show STR soursetable from url http://78.46.59.40:2101/
-
-### Usage
+### Usage 
 
 ```
-ntripbrowser.py [-h] [-p PORT] [-v] [-n] [-c] [-t] [-s] url  
+python ntripbrowser.py [-h] [-p PORT] [-v] [-n] [-c] [-t] [-s] url  
 
 positional arguments:  
-  url                   NTRIP url. For example: 78.46.59.40  
+  url                   NTRIP soursetable address
 
 optional arguments:  
   -h, --help            Show this help message and exit  
