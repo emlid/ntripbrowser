@@ -194,10 +194,15 @@ def argparser():
 
 def main():
     args = argparser()
-    if args.port:
-        url_for_parse = 'http://{}:{}'.format(args.url, args.port)
+    if (args.url.find("http") != -1):
+        pream = ''
     else:
-        url_for_parse = 'http://{}:2101'.format(args.url)
+        pream = 'http://'
+
+    if args.port:
+        url_for_parse = '{}{}:{}'.format(pream, args.url, args.port)
+    else:
+        url_for_parse = '{}{}:2101'.format(pream, args.url)
 
     try:
         NTRIP_url = urllib.urlopen(url_for_parse)
