@@ -26,23 +26,6 @@ import argparse
 import pydoc
 from texttable import Texttable
 
-parser = argparse.ArgumentParser(description='Parse NTRIP soursetable')
-parser.add_argument("url", help="NTRIP soursetable address")
-parser.add_argument("-p", "--port", type=int,
-                    help="change url port. Standart port is 2101")
-parser.add_argument("-v", "--verbose", action="store_true",
-                    help="increase output verbosity")
-parser.add_argument("-n", "--nettable", action="store_true",
-                    help="additional show NET table")
-parser.add_argument("-c", "--cattable", action="store_true",
-                    help="additional show CAT table")
-parser.add_argument("-t", "--terminal", action="store_true",
-                    help="redirect output data to terminal")
-parser.add_argument("-s", "--source", action="store_true",
-                    help="display url sourse data")
-args = parser.parse_args()
-
-
 class NTRIP(object):
 
     STR_headers = ["Mountpoint","ID","Format","Format-Details",
@@ -191,7 +174,26 @@ class NTRIP(object):
         else:
             pydoc.pager(output_data)
 
+def argparser():
+    parser = argparse.ArgumentParser(description='Parse NTRIP soursetable')
+    parser.add_argument("url", help="NTRIP soursetable address")
+    parser.add_argument("-p", "--port", type=int,
+                        help="change url port. Standart port is 2101")
+    parser.add_argument("-v", "--verbose", action="store_true",
+                        help="increase output verbosity")
+    parser.add_argument("-n", "--nettable", action="store_true",
+                        help="additional show NET table")
+    parser.add_argument("-c", "--cattable", action="store_true",
+                        help="additional show CAT table")
+    parser.add_argument("-t", "--terminal", action="store_true",
+                        help="redirect output data to terminal")
+    parser.add_argument("-s", "--source", action="store_true",
+                        help="display url sourse data")
+    return parser.parse_args()
+
+
 def main():
+    args = argparser()
     if args.port:
         url_for_parse = 'http://{}:{}'.format(args.url, args.port)
     else:
