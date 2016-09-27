@@ -1,0 +1,190 @@
+import urllib
+from texttable import Texttable
+import argparse
+import pydoc
+
+parser = argparse.ArgumentParser()
+parser.add_argument("url", help="NTRIP url. For example: 78.46.59.40")
+parser.add_argument("-p", "--port", type=int,
+                    help="Change url port. Standart port is 2101")
+parser.add_argument("-v", "--verbose", action="store_true",
+                    help="increase output verbosity")
+parser.add_argument("-n", "--nettable", action="store_true",
+                    help="additional show NET table")
+parser.add_argument("-c", "--cattable", action="store_true",
+                    help="additional show CAT table")
+parser.add_argument("-t", "--terminal", action="store_true",
+                    help="redirect output data to terminal")
+parser.add_argument("-s", "--source", action="store_true",
+                    help="display sourse data without parsing")
+args = parser.parse_args()
+
+
+class NTRIP(object):
+
+    STR_headers = ["Mountpoint","ID","Format","Format-Details",
+        "Carrier","Nav-System","Network","Country","Latitude",
+        "Longitude","NMEA","Solution","Generator","Compr-Encrp",
+        "Authentication","Fee","Bitrate",""]
+
+    STR_colomn_width = [5, 10, 5, 9, 3,
+                        4, 5, 3, 9, 9,
+                        3, 3, 5, 5, 3,
+                        3, 4, 5]
+
+    STR_align = ['c', 'l', 'c', 'r', 'c',
+                 'c', 'c', 'c', 'r', 'r',
+                 'c', 'c', 'c', 'c', 'c',
+                 'c', 'c', 'c']
+
+    STR_valign = list('m'*18)
+
+    STR_colomn_width_non_verbose = [10, 30, 10, 12, 10]
+    
+    STR_non_verbose = [0, 1, 2, 5, 7]
+
+    CAS_headers = ["Host","Port","ID","Operator",
+        "NMEA","Country","Latitude","Longitude", 
+        "Fallback\nHost","Fallback\nPort",""]
+
+    CAS_colomn_width = [20, 4, 10, 10, 4,
+                        7, 9, 9, 16, 4, 
+                        20]
+
+    CAS_align = ['l', 'c', 'l', 'c', 'c',
+                 'c', 'r', 'r', 'r', 'c',
+                 'l']
+
+    CAS_valign = list('m'*11)
+
+
+    NET_headers = ["ID","Operator","Authentication",
+        "Fee","Web-Net","Web-Str","Web-Reg",""]
+
+    NET_colomn_width = [8, 10, 10, 3,
+                        15, 15, 15, 4]
+
+    NET_align = ['c', 'c', 'c', 'c',
+                 'l', 'l', 'l', 'c']
+
+    NET_valign = list('m'*8)
+
+    def __init__(self, sourcetable, verbose = False, 
+            show_net = False, show_cas = False,
+            terminal_output = False):
+
+        self.verbose = verbose 
+        self.show_net = show_net
+        self.show_cas = show_cas
+        self.terminal_output = terminal_output
+        self.sourcetable = None    
+        self.str_data = [self.STR_headers]
+        self.cas_data = [self.CAS_headers]
+        self.net_data = [self.NET_headers]
+
+        if self.check_page_status(sourcetable):
+            self.crop_soursetable(sourcetable)
+            self.parce_sourcetable()
+            self.create_ascii_table()
+            self.display_tables()
+
+    def check_page_status(self, sourcetable):
+        find = sourcetable.find('SOURCETABLE')
+        find_status = find + len('SOURCETABLE') + 1
+        status = sourcetable[find_status:find_status+3]
+        if status != '200':
+            print "Error page code: {}".format(status)
+            return False
+        return True
+
+    def crop_soursetable(self, sourcetable):
+        CAS = sourcetable.find('CAS') 
+        NET = sourcetable.find('NET')
+        STR = sourcetable.find('STR')
+        first = CAS if (CAS != -1) else (NET if NET != -1 else STR)
+        last = sourcetable.find('ENDSOURCETABLE')        
+        self.sourcetable = sourcetable[first:last]
+
+    def parce_sourcetable(self):
+        for NTRIP_data in self.sourcetable.split('\n'):
+            NTRIP_data_list = NTRIP_data.split(';')
+            if NTRIP_data_list[0] == 'STR':
+                NTRIP_data_list[4] =  NTRIP_data_list[4].replace(',', '\n')
+                self.str_data.append(NTRIP_data_list[1:])
+            if NTRIP_data_list[0] == 'CAS':
+                self.cas_data.append(NTRIP_data_list[1:])
+            if NTRIP_data_list[0] == 'NET':
+                self.net_data.append(NTRIP_data_list[1:])
+
+    def change_verbosity(self):
+        align = [self.STR_align[i] for i in self.STR_non_verbose]
+        valign = [self.STR_valign[i] for i in self.STR_non_verbose]
+        data = []
+        for elem in self.str_data:
+            data.append([elem[i] for i in self.STR_non_verbose])
+        
+        self.str_data = data
+        self.STR_colomn_width = self.STR_colomn_width_non_verbose
+        self.STR_align = align
+        self.STR_valign = valign
+        
+    def create_ascii_table(self):
+        if not self.verbose:
+            self.change_verbosity()  
+            
+        self.STR_table = Texttable()
+        self.STR_table.add_rows(self.str_data)
+        self.STR_table.set_cols_width(self.STR_colomn_width)
+        self.STR_table.set_cols_align(self.STR_align)
+        self.STR_table.set_cols_valign(self.STR_valign)
+
+        if self.show_cas:
+            self.CAS_table = Texttable()
+            self.CAS_table.add_rows(self.cas_data)
+            self.CAS_table.set_cols_width(self.CAS_colomn_width)
+            self.CAS_table.set_cols_align(self.CAS_align)
+            self.CAS_table.set_cols_valign(self.CAS_valign)        
+        if self.show_net:
+            self.NET_table = Texttable()
+            self.NET_table.add_rows(self.net_data)
+            self.NET_table.set_cols_width(self.NET_colomn_width)
+            self.NET_table.set_cols_align(self.NET_align)
+            self.NET_table.set_cols_valign(self.NET_valign)
+
+    def display_tables(self):
+        output_data = "STR Table\n"
+        output_data += self.STR_table.draw() + '\n'
+        if self.show_cas:
+            output_data += "CAS Table\n"
+            output_data += self.CAS_table.draw() + '\n'
+        if self.show_net:
+            output_data += "NET Table\n"
+            output_data += self.NET_table.draw()
+        if self.terminal_output:
+            print(output_data)
+        else:
+            pydoc.pager(output_data)
+
+def main():
+    if args.port:
+        url_for_parse = 'http://{}:{}'.format(args.url, args.port)
+    else:
+        url_for_parse = 'http://{}:2101'.format(args.url)
+
+    try:
+        NTRIP_url = urllib.urlopen(url_for_parse)
+        url_data = NTRIP_url.read()
+    except IOError:
+        print "Socket error. Connection refused"
+    else:
+        if args.source:
+            if args.terminal:
+                print(url_data)
+            else:
+                pydoc.pager(url_data)
+        else:
+            NTRIP(url_data, args.verbose, args.nettable, 
+                args.cattable, args.terminal)
+
+if __name__ == '__main__':
+    main()
