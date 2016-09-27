@@ -26,10 +26,10 @@ import argparse
 import pydoc
 from texttable import Texttable
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description='Parse NTRIP soursetable')
 parser.add_argument("url", help="NTRIP url. For example: 78.46.59.40")
 parser.add_argument("-p", "--port", type=int,
-                    help="Change url port. Standart port is 2101")
+                    help="change url port. Standart port is 2101")
 parser.add_argument("-v", "--verbose", action="store_true",
                     help="increase output verbosity")
 parser.add_argument("-n", "--nettable", action="store_true",
@@ -39,7 +39,7 @@ parser.add_argument("-c", "--cattable", action="store_true",
 parser.add_argument("-t", "--terminal", action="store_true",
                     help="redirect output data to terminal")
 parser.add_argument("-s", "--source", action="store_true",
-                    help="display sourse data without parsing")
+                    help="display url sourse data")
 args = parser.parse_args()
 
 
@@ -116,7 +116,10 @@ class NTRIP(object):
         find_status = find + len('SOURCETABLE') + 1
         status = sourcetable[find_status:find_status+3]
         if status != '200':
-            print "Error page code: {}".format(status)
+            if self.terminal_output:
+                print "Error page code: {}".format(status)
+            else:
+                pydoc.pager("Error page code: {}".format(status))
             return False
         return True
 
