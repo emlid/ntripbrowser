@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='ntripbrowser',
-    version='0.0.1',
+    version='0.0.2',
     author='Ivan Sapozhkov',
     author_email='ivan.sapozhkov@emlid.com',
     py_modules=['ntripbrowser'],
