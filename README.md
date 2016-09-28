@@ -28,6 +28,6 @@ optional arguments:
   -v, --verbose         Increase output verbosity  
   -N, --NETtable        Additionaly show NET table  
   -C, --CATtable        Additionaly show CAT table  
-  -n, --nopager        No pager  
+  -n, --nopager         No pager  
   -s, --source          Display url source data  
   ```
