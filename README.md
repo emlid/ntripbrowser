@@ -26,8 +26,8 @@ optional arguments:
   -h, --help            Show this help message and exit  
   -p PORT, --port PORT  Change url port. Default port is 2101  
   -v, --verbose         Increase output verbosity  
-  -n, --nettable        Additional show NET table  
-  -c, --cattable        Additional show CAT table  
-  -t, --terminal        Redirect output data to terminal  
+  -N, --NETtable        Additionaly show NET table  
+  -C, --CATtable        Additionaly show CAT table  
+  -n, --nopager        No pager  
   -s, --source          Display url source data  
   ```

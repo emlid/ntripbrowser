@@ -77,19 +77,19 @@ class NTRIP(object):
 
     def __init__(self, sourcetable, verbose = False, 
             show_net = False, show_cas = False,
-            terminal_output = False):
+            nopager = False):
 
         self.verbose = verbose 
         self.show_net = show_net
         self.show_cas = show_cas
-        self.terminal_output = terminal_output
+        self.nopager = nopager
         self.sourcetable = None    
         self.str_data = [self.STR_headers]
         self.cas_data = [self.CAS_headers]
         self.net_data = [self.NET_headers]
 
         if self.check_page_status(sourcetable):
-            self.crop_soursetable(sourcetable)
+            self.crop_sourcetable(sourcetable)
             self.parce_sourcetable()
             self.create_ascii_table()
             self.display_tables()
@@ -99,14 +99,14 @@ class NTRIP(object):
         find_status = find + len('SOURCETABLE') + 1
         status = sourcetable[find_status:find_status+3]
         if status != '200':
-            if self.terminal_output:
+            if self.nopager:
                 print "Error page code: {}".format(status)
             else:
                 pydoc.pager("Error page code: {}".format(status))
             return False
         return True
 
-    def crop_soursetable(self, sourcetable):
+    def crop_sourcetable(self, sourcetable):
         CAS = sourcetable.find('CAS') 
         NET = sourcetable.find('NET')
         STR = sourcetable.find('STR')
@@ -169,26 +169,26 @@ class NTRIP(object):
         if self.show_net:
             output_data += "NET Table\n"
             output_data += self.NET_table.draw()
-        if self.terminal_output:
+        if self.nopager:
             print(output_data)
         else:
             pydoc.pager(output_data)
 
 def argparser():
-    parser = argparse.ArgumentParser(description='Parse NTRIP soursetable')
-    parser.add_argument("url", help="NTRIP soursetable address")
+    parser = argparse.ArgumentParser(description='Parse NTRIP sourcetable')
+    parser.add_argument("url", help="NTRIP sourcetable address")
     parser.add_argument("-p", "--port", type=int,
                         help="change url port. Standart port is 2101")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="increase output verbosity")
-    parser.add_argument("-n", "--nettable", action="store_true",
+    parser.add_argument("-N", "--NETtable", action="store_true",
                         help="additional show NET table")
-    parser.add_argument("-c", "--cattable", action="store_true",
+    parser.add_argument("-C", "--CATtable", action="store_true",
                         help="additional show CAT table")
-    parser.add_argument("-t", "--terminal", action="store_true",
-                        help="redirect output data to terminal")
+    parser.add_argument("-n", "--nopager", action="store_true",
+                        help="no pager")
     parser.add_argument("-s", "--source", action="store_true",
-                        help="display url sourse data")
+                        help="display url source data")
     return parser.parse_args()
 
 
@@ -211,13 +211,13 @@ def main():
         print "Socket error. Connection refused"
     else:
         if args.source:
-            if args.terminal:
+            if args.nopager:
                 print(url_data)
             else:
                 pydoc.pager(url_data)
         else:
-            NTRIP(url_data, args.verbose, args.nettable, 
-                args.cattable, args.terminal)
+            NTRIP(url_data, args.verbose, args.NETtable, 
+                args.CATtable, args.nopager)
 
 if __name__ == '__main__':
     main()
