@@ -17,7 +17,7 @@ or clone and run `make install`
 ### Usage 
 
 ```
-python ntripbrowser.py [-h] [-p PORT] [-v] [-n] [-c] [-t] [-s] url  
+python ntripbrowser.py [-h] [-p PORT] [-v] [-N] [-C] [-n] [-s] url  
 
 positional arguments:  
   url                   NTRIP source table address
