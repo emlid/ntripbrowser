@@ -21,7 +21,6 @@
 # You should have received a copy of the GNU General Public License
 # along with ntripbrowser.  If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
 import argparse
 import pydoc
 from texttable import Texttable
@@ -46,15 +45,15 @@ class NTRIP(object):
     STR_valign = list('m'*18)
 
     STR_colomn_width_non_verbose = [10, 30, 10, 12, 10]
-    
+
     STR_non_verbose = [0, 1, 2, 5, 7]
 
     CAS_headers = ["Host","Port","ID","Operator",
-        "NMEA","Country","Latitude","Longitude", 
+        "NMEA","Country","Latitude","Longitude",
         "Fallback\nHost","Fallback\nPort",""]
 
     CAS_colomn_width = [20, 4, 10, 10, 4,
-                        7, 9, 9, 16, 4, 
+                        7, 9, 9, 16, 4,
                         20]
 
     CAS_align = ['l', 'c', 'l', 'c', 'c',
@@ -75,15 +74,15 @@ class NTRIP(object):
 
     NET_valign = list('m'*8)
 
-    def __init__(self, sourcetable, verbose = False, 
+    def __init__(self, sourcetable, verbose = False,
             show_net = False, show_cas = False,
             nopager = False):
 
-        self.verbose = verbose 
+        self.verbose = verbose
         self.show_net = show_net
         self.show_cas = show_cas
         self.nopager = nopager
-        self.sourcetable = None    
+        self.sourcetable = None
         self.str_data = [self.STR_headers]
         self.cas_data = [self.CAS_headers]
         self.net_data = [self.NET_headers]
@@ -107,11 +106,11 @@ class NTRIP(object):
         return True
 
     def crop_sourcetable(self, sourcetable):
-        CAS = sourcetable.find('CAS') 
+        CAS = sourcetable.find('CAS')
         NET = sourcetable.find('NET')
         STR = sourcetable.find('STR')
         first = CAS if (CAS != -1) else (NET if NET != -1 else STR)
-        last = sourcetable.find('ENDSOURCETABLE')        
+        last = sourcetable.find('ENDSOURCETABLE')
         self.sourcetable = sourcetable[first:last]
 
     def parce_sourcetable(self):
@@ -131,16 +130,16 @@ class NTRIP(object):
         data = []
         for elem in self.str_data:
             data.append([elem[i] for i in self.STR_non_verbose])
-        
+
         self.str_data = data
         self.STR_colomn_width = self.STR_colomn_width_non_verbose
         self.STR_align = align
         self.STR_valign = valign
-        
+
     def create_ascii_table(self):
         if not self.verbose:
-            self.change_verbosity()  
-            
+            self.change_verbosity()
+
         self.STR_table = Texttable()
         self.STR_table.add_rows(self.str_data)
         self.STR_table.set_cols_width(self.STR_colomn_width)
@@ -152,7 +151,7 @@ class NTRIP(object):
             self.CAS_table.add_rows(self.cas_data)
             self.CAS_table.set_cols_width(self.CAS_colomn_width)
             self.CAS_table.set_cols_align(self.CAS_align)
-            self.CAS_table.set_cols_valign(self.CAS_valign)        
+            self.CAS_table.set_cols_valign(self.CAS_valign)
         if self.show_net:
             self.NET_table = Texttable()
             self.NET_table.add_rows(self.net_data)
@@ -193,6 +192,11 @@ def argparser():
 
 
 def main():
+    try:
+        from urllib2 import urlopen
+    except ImportError:
+        from urllib import urlopen
+
     args = argparser()
     if (args.url.find("http") != -1):
         pream = ''
@@ -205,18 +209,20 @@ def main():
         url_for_parse = '{}{}:2101'.format(pream, args.url)
 
     try:
-        NTRIP_url = urllib.urlopen(url_for_parse)
+        NTRIP_url = urlopen(url_for_parse)
         url_data = NTRIP_url.read()
     except IOError:
         print "Socket error. Connection refused"
+        NTRIP_url.close()
     else:
+        NTRIP_url.close()
         if args.source:
             if args.nopager:
                 print(url_data)
             else:
                 pydoc.pager(url_data)
         else:
-            NTRIP(url_data, args.verbose, args.NETtable, 
+            NTRIP(url_data, args.verbose, args.NETtable,
                 args.CATtable, args.nopager)
 
 if __name__ == '__main__':
