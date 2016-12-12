@@ -23,7 +23,22 @@
 
 import argparse
 import pydoc
+import subprocess
 from texttable import Texttable
+
+def getScreenResolution():
+    cmd = "stty size"
+    output = subprocess.check_output(cmd, shell=True, stderr=subprocess.PIPE)
+    size = output.strip().split()
+    return size
+
+def display_output(message, max_height, nopager=False):
+    if (nopager or
+        len(message.split('\n')) < max_height):
+        print message.strip()
+    else:
+        pydoc.pager(message.strip())
+
 
 class NTRIP(object):
 
@@ -32,11 +47,6 @@ class NTRIP(object):
         "Longitude","NMEA","Solution","Generator","Compr-Encrp",
         "Authentication","Fee","Bitrate",""]
 
-    STR_colomn_width = [5, 10, 5, 9, 3,
-                        4, 5, 3, 9, 9,
-                        3, 3, 5, 5, 3,
-                        3, 4, 5]
-
     STR_align = ['c', 'l', 'c', 'r', 'c',
                  'c', 'c', 'c', 'r', 'r',
                  'c', 'c', 'c', 'c', 'c',
@@ -44,17 +54,12 @@ class NTRIP(object):
 
     STR_valign = list('m'*18)
 
-    STR_colomn_width_non_verbose = [10, 30, 10, 12, 10]
-
     STR_non_verbose = [0, 1, 2, 5, 7]
 
     CAS_headers = ["Host","Port","ID","Operator",
         "NMEA","Country","Latitude","Longitude",
         "Fallback\nHost","Fallback\nPort",""]
 
-    CAS_colomn_width = [20, 4, 10, 10, 4,
-                        7, 9, 9, 16, 4,
-                        20]
 
     CAS_align = ['l', 'c', 'l', 'c', 'c',
                  'c', 'r', 'r', 'r', 'c',
@@ -66,18 +71,18 @@ class NTRIP(object):
     NET_headers = ["ID","Operator","Authentication",
         "Fee","Web-Net","Web-Str","Web-Reg",""]
 
-    NET_colomn_width = [8, 10, 10, 3,
-                        15, 15, 15, 4]
 
     NET_align = ['c', 'c', 'c', 'c',
                  'l', 'l', 'l', 'c']
 
     NET_valign = list('m'*8)
 
-    def __init__(self, sourcetable, verbose = False,
+    def __init__(self, sourcetable, window_size, verbose = False,
             show_net = False, show_cas = False,
             nopager = False):
 
+        self.height = int(window_size[0])
+        self.width = int(window_size[1])
         self.verbose = verbose
         self.show_net = show_net
         self.show_cas = show_cas
@@ -98,10 +103,8 @@ class NTRIP(object):
         find_status = find + len('SOURCETABLE') + 1
         status = sourcetable[find_status:find_status+3]
         if status != '200':
-            if self.nopager:
-                print "Error page code: {}".format(status)
-            else:
-                pydoc.pager("Error page code: {}".format(status))
+            display_output("Error page code: {}".format(status), 
+                self.height, self.nopager)
             return False
         return True
 
@@ -132,7 +135,6 @@ class NTRIP(object):
             data.append([elem[i] for i in self.STR_non_verbose])
 
         self.str_data = data
-        self.STR_colomn_width = self.STR_colomn_width_non_verbose
         self.STR_align = align
         self.STR_valign = valign
 
@@ -140,22 +142,19 @@ class NTRIP(object):
         if not self.verbose:
             self.change_verbosity()
 
-        self.STR_table = Texttable()
+        self.STR_table = Texttable(max_width = self.width)
         self.STR_table.add_rows(self.str_data)
-        self.STR_table.set_cols_width(self.STR_colomn_width)
         self.STR_table.set_cols_align(self.STR_align)
         self.STR_table.set_cols_valign(self.STR_valign)
 
         if self.show_cas:
-            self.CAS_table = Texttable()
+            self.CAS_table = Texttable(max_width = self.width)
             self.CAS_table.add_rows(self.cas_data)
-            self.CAS_table.set_cols_width(self.CAS_colomn_width)
             self.CAS_table.set_cols_align(self.CAS_align)
             self.CAS_table.set_cols_valign(self.CAS_valign)
         if self.show_net:
-            self.NET_table = Texttable()
+            self.NET_table = Texttable(max_width = self.width)
             self.NET_table.add_rows(self.net_data)
-            self.NET_table.set_cols_width(self.NET_colomn_width)
             self.NET_table.set_cols_align(self.NET_align)
             self.NET_table.set_cols_valign(self.NET_valign)
 
@@ -168,10 +167,8 @@ class NTRIP(object):
         if self.show_net:
             output_data += "NET Table\n"
             output_data += self.NET_table.draw()
-        if self.nopager:
-            print(output_data)
-        else:
-            pydoc.pager(output_data)
+        
+        display_output(output_data, self.height, self.nopager)
 
 def argparser():
     parser = argparse.ArgumentParser(description='Parse NTRIP sourcetable')
@@ -184,7 +181,7 @@ def argparser():
                         help="additional show NET table")
     parser.add_argument("-C", "--CATtable", action="store_true",
                         help="additional show CAT table")
-    parser.add_argument("-n", "--nopager", action="store_true",
+    parser.add_argument("-n", "--no-pager", action="store_true",
                         help="no pager")
     parser.add_argument("-s", "--source", action="store_true",
                         help="display url source data")
@@ -222,8 +219,9 @@ def main():
             else:
                 pydoc.pager(url_data)
         else:
-            NTRIP(url_data, args.verbose, args.NETtable,
-                args.CATtable, args.nopager)
+            window_size = getScreenResolution()
+            NTRIP(url_data, window_size, args.verbose, args.NETtable,
+                args.CATtable, args.no_pager)
 
 if __name__ == '__main__':
     main()
