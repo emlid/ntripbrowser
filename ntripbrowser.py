@@ -103,7 +103,7 @@ class NTRIP(object):
         find_status = find + len('SOURCETABLE') + 1
         status = sourcetable[find_status:find_status+3]
         if status != '200':
-            display_output("Error page code: {}".format(status), 
+            display_output("Error page code: {}".format(status),
                 self.height, self.nopager)
             return False
         return True
@@ -123,9 +123,11 @@ class NTRIP(object):
                 NTRIP_data_list[4] =  NTRIP_data_list[4].replace(',', '\n')
                 self.str_data.append(NTRIP_data_list[1:])
             if NTRIP_data_list[0] == 'CAS':
-                self.cas_data.append(NTRIP_data_list[1:])
+                if len(NTRIP_data_list) > len(self.CAS_headers):
+                    self.cas_data.append(NTRIP_data_list[1:])
             if NTRIP_data_list[0] == 'NET':
-                self.net_data.append(NTRIP_data_list[1:])
+                if len(NTRIP_data_list) > len(self.NET_headers):
+                    self.net_data.append(NTRIP_data_list[1:])
 
     def change_verbosity(self):
         align = [self.STR_align[i] for i in self.STR_non_verbose]
@@ -141,33 +143,45 @@ class NTRIP(object):
     def create_ascii_table(self):
         if not self.verbose:
             self.change_verbosity()
-
-        self.STR_table = Texttable(max_width = self.width)
-        self.STR_table.add_rows(self.str_data)
-        self.STR_table.set_cols_align(self.STR_align)
-        self.STR_table.set_cols_valign(self.STR_valign)
+        if len(self.str_data) > 1:
+            self.STR_table = Texttable(max_width = self.width)
+            self.STR_table.add_rows(self.str_data)
+            self.STR_table.set_cols_align(self.STR_align)
+            self.STR_table.set_cols_valign(self.STR_valign)
+        else:
+            self.STR_table = None
 
         if self.show_cas:
-            self.CAS_table = Texttable(max_width = self.width)
-            self.CAS_table.add_rows(self.cas_data)
-            self.CAS_table.set_cols_align(self.CAS_align)
-            self.CAS_table.set_cols_valign(self.CAS_valign)
+            print len(self.cas_data)
+            if len(self.cas_data) > 1:
+                self.CAS_table = Texttable(max_width = self.width)
+                self.CAS_table.add_rows(self.cas_data)
+                self.CAS_table.set_cols_align(self.CAS_align)
+                self.CAS_table.set_cols_valign(self.CAS_valign)
+            else:
+                self.CAS_table = None
         if self.show_net:
-            self.NET_table = Texttable(max_width = self.width)
-            self.NET_table.add_rows(self.net_data)
-            self.NET_table.set_cols_align(self.NET_align)
-            self.NET_table.set_cols_valign(self.NET_valign)
+            if len(self.net_data) > 1:
+                self.NET_table = Texttable(max_width = self.width)
+                self.NET_table.add_rows(self.net_data)
+                self.NET_table.set_cols_align(self.NET_align)
+                self.NET_table.set_cols_valign(self.NET_valign)
+            else:
+                self.NET_table = None
 
     def display_tables(self):
-        output_data = "STR Table\n"
-        output_data += self.STR_table.draw() + '\n'
+        output_data = "{:=^{}}\n\n".format("STR Table", self.width)
+        if self.STR_table:
+            output_data += self.STR_table.draw() + '\n\n'
         if self.show_cas:
-            output_data += "CAS Table\n"
-            output_data += self.CAS_table.draw() + '\n'
+            output_data += "{:=^{}}\n\n".format("CAS Table", self.width)
+            if self.CAS_table:
+                output_data += self.CAS_table.draw() + '\n\n'
         if self.show_net:
-            output_data += "NET Table\n"
-            output_data += self.NET_table.draw()
-        
+            output_data += "{:=^{}}\n\n".format("NET Table", self.width)
+            if self.NET_table:
+                output_data += self.NET_table.draw()
+
         display_output(output_data, self.height, self.nopager)
 
 def argparser():
@@ -210,16 +224,12 @@ def main():
         url_data = NTRIP_url.read()
     except IOError:
         print "Socket error. Connection refused"
-        NTRIP_url.close()
     else:
         NTRIP_url.close()
+        window_size = getScreenResolution()
         if args.source:
-            if args.nopager:
-                print(url_data)
-            else:
-                pydoc.pager(url_data)
+            display_output(url_data, int(window_size[0]),  args.no_pager)
         else:
-            window_size = getScreenResolution()
             NTRIP(url_data, window_size, args.verbose, args.NETtable,
                 args.CATtable, args.no_pager)
 
