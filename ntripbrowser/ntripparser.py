@@ -1,6 +1,6 @@
 import re
-from geopy.distance import vincenty
 from urllib2 import urlopen
+from geopy.distance import vincenty
 
 def get_nearest_point(obs_point, base_point):
     return vincenty(obs_point, base_point).kilometers
@@ -25,17 +25,14 @@ def get_mountpoints(url, port=2101, base_point=(0, 0), timeout=None):
 
     return tables.str_data
 
-def get_table(url, port=2101, timeout=None, **kwargs):
-    pass
-
 class STR(object):
 
     def __init__(self, str_lines):
 
         self.STR_headers = ["Mountpoint", "ID", "Format", "Format Details",
             "Carrier", "Nav System", "Network", "Country", "Latitude",
-            "Longitude", "NMEA", "Solution", "Generator", "Compr-Encrp",
-            "Authentication", "Fee", "Bitrate", "Site"]
+            "Longitude", "NMEA", "SOL", "Generator", "Compr-Encrp",
+            "Authentication", "Fee", "Bitrate", "Other Details"]
 
         self.data = dict(zip(self.STR_headers, str_lines))
         self.distance = None
@@ -66,6 +63,12 @@ class STR(object):
     def table(self):
         return self.data
 
+    def keys(self):
+        return self.STR_headers
+
+    def values(self):
+        return [self.data[prop] for prop in self.STR_headers]
+
 class CAS(object):
 
     def __init__(self, cas_lines):
@@ -78,7 +81,6 @@ class CAS(object):
             self.CAS_headers.pop(8)
             self.CAS_headers.pop(8)
         self.data = dict(zip(self.CAS_headers, cas_lines))
-        print self.data
 
     def __str__(self):
         return str(self.data)
@@ -88,6 +90,12 @@ class CAS(object):
             return self.data[value]
         except KeyError:
             return ''
+
+    def keys(self):
+        return self.STR_headers
+
+    def values(self):
+        return [self.data[prop] for prop in self.CAS_headers]
 
 class NET(object):
 
@@ -104,6 +112,12 @@ class NET(object):
             return self.data[value]
         except KeyError:
             return ''
+
+    def keys(self):
+        return self.NET_headers
+
+    def values(self):
+        return [self.data[prop] for prop in self.NET_headers]
 
 class NTRIPError(Exception):
     pass

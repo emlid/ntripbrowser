@@ -120,7 +120,8 @@ class NTRIP(object):
         for NTRIP_data in self.sourcetable.split('\n'):
             NTRIP_data_list = NTRIP_data.split(';')
             if NTRIP_data_list[0] == 'STR':
-                NTRIP_data_list[4] =  NTRIP_data_list[4].replace(',', '\n')
+                NTRIP_data_list[4] = NTRIP_data_list[4].replace(',', '\n')
+                NTRIP_data_list[6] = NTRIP_data_list[6].replace('+', '\n')
                 self.str_data.append(NTRIP_data_list[1:])
             if NTRIP_data_list[0] == 'CAS':
                 if len(NTRIP_data_list) > len(self.CAS_headers):
@@ -169,15 +170,16 @@ class NTRIP(object):
                 self.NET_table = None
 
     def display_tables(self):
-        output_data = "{:=^{}}\n\n".format("STR Table", self.width)
+        self.STR_table._compute_cols_width()
+        output_data = "{:=^{}}\n\n".format("STR Table", 40)
         if self.STR_table:
             output_data += self.STR_table.draw() + '\n\n'
         if self.show_cas:
-            output_data += "{:=^{}}\n\n".format("CAS Table", self.width)
+            output_data += "{:=^{}}\n\n".format("CAS Table", 40)
             if self.CAS_table:
                 output_data += self.CAS_table.draw() + '\n\n'
         if self.show_net:
-            output_data += "{:=^{}}\n\n".format("NET Table", self.width)
+            output_data += "{:=^{}}\n\n".format("NET Table", 40)
             if self.NET_table:
                 output_data += self.NET_table.draw()
 
