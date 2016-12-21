@@ -152,7 +152,6 @@ class NTRIP(object):
             self.STR_table = None
 
         if self.show_cas:
-            print len(self.cas_data)
             if len(self.cas_data) > 1:
                 self.CAS_table = Texttable(max_width = self.width)
                 self.CAS_table.add_rows(self.cas_data)

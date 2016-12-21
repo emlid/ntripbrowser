@@ -1,11 +1,11 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='ntripbrowser',
-    version='0.0.5',
+    version='0.0.6',
     author='Ivan Sapozhkov',
     author_email='ivan.sapozhkov@emlid.com',
-    py_modules=['ntripbrowser'],
+    packages=['ntripbrowser'],
     install_requires=['texttable'],
     license = 'GPLv3',
     url='https://github.com/emlid/ntripbrowser.git',
@@ -13,7 +13,7 @@ setup(
     long_description=open('README.md').read(),
     entry_points = {
         'console_scripts': [
-            'ntripbrowser = ntripbrowser:main',
+            'ntripbrowser = ntripbrowser.ntripbrowser:main',
         ],
     },
 )

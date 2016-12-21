@@ -4,6 +4,7 @@ A simple Python API for browse NTRIP (Networked Transport of RTCM via Internet P
 
 ### Dependencies
 
+`geopy`
 `texttable`
 
 The package was tested with **Python 2.7**
@@ -31,3 +32,14 @@ optional arguments:
   -n, --no-pager        No pager  
   -s, --source          Display url source data  
   ```
+
+
+### Package API
+
+```python
+from ntripbrowser import get_mountpoints
+
+mntpoints = get_mountpoints("ntrip.emlid.com", base_point=(59.96032, 30.33409))
+for mnt in sorted(mntpoints, key=lambda mnt: mnt["Distance"]):
+    print("{:10} ({}): {:.4f} km".format(mnt["Mountpoint"], mnt["Format"], mnt["Distance"]))
+```
