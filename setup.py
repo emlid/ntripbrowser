@@ -6,7 +6,7 @@ setup(
     author='Ivan Sapozhkov',
     author_email='ivan.sapozhkov@emlid.com',
     packages=['ntripbrowser'],
-    install_requires=['texttable'],
+    install_requires=['texttable', 'geopy'],
     license = 'GPLv3',
     url='https://github.com/emlid/ntripbrowser.git',
     description='NTRIP Browser for terminal',

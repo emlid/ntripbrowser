@@ -36,11 +36,11 @@ optional arguments:
 
 ### Package API
 
- - `get_mountpoints(url, port, base_point, timeout)`. Return dictionary.  
+ - `get_mountpoints(url, port, my_position, timeout)`. Return list of dictionaries.  
 Input arguments:
     - url: NTRIP url
     - port: NTRIP port. Default value: 2101
-    - base_point: Point for distance calculation. Point format - (float(lat), float(lon)). Default value: (0, 0)
+    - my_position: Point for distance calculation. Point format - (float(lat), float(lon)). Default value: None
     - timeout: timeout for url request. Default value: None
 
 Output keys:
@@ -54,7 +54,7 @@ Output keys:
 ```python
 from ntripbrowser import get_mountpoints
 
-mntpoints = get_mountpoints("ntrip.emlid.com", base_point=(59.96032, 30.33409))
+mntpoints = get_mountpoints("ntrip.emlid.com", my_position=(59.96032, 30.33409))
 for mnt in sorted(mntpoints, key=lambda mnt: mnt["Distance"]):
     print("{:10} ({}): {:.4f} km".format(mnt["Mountpoint"], mnt["Format"], mnt["Distance"]))
 ```

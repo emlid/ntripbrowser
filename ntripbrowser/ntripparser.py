@@ -18,10 +18,11 @@ def read_data_from_url(url, port, timeout):
     else:
         return sourcetable
 
-def get_mountpoints(url, port=2101, base_point=(0, 0), timeout=None):
+def get_mountpoints(url, port=2101, my_position=None, timeout=None):
     tables = NTRIP(read_data_from_url(url, port, timeout))
-    for mountpoint in tables.str_data:
-        mountpoint.distance = get_nearest_point(mountpoint.point, base_point)
+    if my_position is not None:
+        for mountpoint in tables.str_data:
+            mountpoint.distance = get_nearest_point(mountpoint.point, my_position)
 
     return [dict(mnt.data) for mnt in tables.str_data]
 
@@ -161,6 +162,6 @@ class NTRIP(object):
                 self.net_data.append(NET(NTRIP_data_list[1:]))
 
 if __name__ == '__main__':
-    b = sorted(get_mountpoints("ntrip.emlid.com", base_point=(59.96032293, 30.33409)), key=lambda mnt: mnt["Distance"])
-    for mnt in b:
+    points = sorted(get_mountpoints("ntrip.emlid.com", my_position=(59.96032293, 30.33409)), key=lambda mnt: mnt["Distance"])
+    for mnt in points:
         print("{:10} ({}): {:.4f} km".format(mnt["Mountpoint"], mnt['Format'], mnt['Distance']))
