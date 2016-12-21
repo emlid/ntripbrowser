@@ -1,1 +1,1 @@
-from .ntripparcer import get_mountpoints 
+from .ntripparser import get_mountpoints
