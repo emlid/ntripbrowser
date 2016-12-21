@@ -14,7 +14,7 @@ def read_data_from_url(url, port, timeout):
         sourcetable = data.read()
         data.close()
     except IOError:
-        print "Socket error. Connection refused"
+        raise NtripError("Socket error. Connection refused")
     else:
         return sourcetable
 
@@ -120,36 +120,36 @@ class NET(object):
     def values(self):
         return [self.data[prop] for prop in self.NET_headers]
 
-class NTRIPError(Exception):
+class NtripError(Exception):
     pass
 
 class NTRIP(object):
 
     def __init__(self, sourcetable):
 
-        self.sourcetable = None
+        self.sourcetable = sourcetable
         self.str_data = []
         self.cas_data = []
         self.net_data = []
 
-        self.check_page_status(sourcetable)
-        self.crop_sourcetable(sourcetable)
+        self.check_page_status()
+        self.crop_sourcetable()
         self.parce_sourcetable()
 
-    def check_page_status(self, sourcetable):
-        status = re.search("(?<=SOURCETABLE )[0-9]+",sourcetable, re.MULTILINE).group(0)
+    def check_page_status(self):
+        status = re.search("(?<=SOURCETABLE )[0-9]+", self.sourcetable, re.MULTILINE).group(0)
         if status != '200':
-            raise NTRIPError("Bad sourcetable")
+            raise NtripError("Bad sourcetable")
 
-    def crop_sourcetable(self, sourcetable):
+    def crop_sourcetable(self):
 
         #TODO: refactoring
-        CAS = sourcetable.find('CAS')
-        NET = sourcetable.find('NET')
-        STR = sourcetable.find('STR')
+        CAS = self.sourcetable.find('CAS')
+        NET = self.sourcetable.find('NET')
+        STR = self.sourcetable.find('STR')
         first = CAS if (CAS != -1) else (NET if NET != -1 else STR)
-        last = sourcetable.find('ENDSOURCETABLE')
-        self.sourcetable = sourcetable[first:last]
+        last = self.sourcetable.find('ENDSOURCETABLE')
+        self.sourcetable = self.sourcetable[first:last]
 
     def parce_sourcetable(self):
         for NTRIP_data in self.sourcetable.split('\n'):
