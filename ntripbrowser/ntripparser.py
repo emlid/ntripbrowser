@@ -23,7 +23,7 @@ def get_mountpoints(url, port=2101, base_point=(0, 0), timeout=None):
     for mountpoint in tables.str_data:
         mountpoint.distance = get_nearest_point(mountpoint.point, base_point)
 
-    return tables.str_data
+    return [dict(mnt.data) for mnt in tables.str_data]
 
 class STR(object):
 
@@ -161,6 +161,6 @@ class NTRIP(object):
                 self.net_data.append(NET(NTRIP_data_list[1:]))
 
 if __name__ == '__main__':
-    b = sorted(get_mountpoints("ntrip.emlid.com", base_point=(59.96032293, 30.33409)), key=lambda mnt: mnt.distance)
+    b = sorted(get_mountpoints("ntrip.emlid.com", base_point=(59.96032293, 30.33409)), key=lambda mnt: mnt["Distance"])
     for mnt in b:
-        print("{:10} ({}): {:.4f} km".format(mnt["Mountpoint"], mnt['Format'], mnt.distance))
+        print("{:10} ({}): {:.4f} km".format(mnt["Mountpoint"], mnt['Format'], mnt['Distance']))
