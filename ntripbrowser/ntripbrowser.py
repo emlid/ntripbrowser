@@ -20,11 +20,14 @@
 
 # You should have received a copy of the GNU General Public License
 # along with ntripbrowser.  If not, see <http://www.gnu.org/licenses/>.
+# from __future__ import unicode_literals
+
 
 import argparse
 import pydoc
 import subprocess
 from texttable import Texttable
+import httplib
 
 def getScreenResolution():
     cmd = "stty size"
@@ -200,6 +203,8 @@ def argparser():
                         help="no pager")
     parser.add_argument("-s", "--source", action="store_true",
                         help="display url source data")
+    parser.add_argument("-t", "--timeout", type=int,
+                        help="add timeout")
     return parser.parse_args()
 
 
@@ -221,9 +226,9 @@ def main():
         url_for_parse = '{}{}:2101'.format(pream, args.url)
 
     try:
-        NTRIP_url = urlopen(url_for_parse)
+        NTRIP_url = urlopen(url_for_parse, timeout = args.timeout)
         url_data = NTRIP_url.read()
-    except IOError:
+    except (IOError, httplib.HTTPException):
         print "Socket error. Connection refused"
     else:
         NTRIP_url.close()
