@@ -52,7 +52,7 @@ Output keys:
 
 
 ```python
-from ntripparser import get_mountpoints
+from ntripbrowser import get_mountpoints
 
 mntpoints = get_mountpoints("ntrip.emlid.com", my_position=(59.96032, 30.33409))
 for mnt in sorted(mntpoints, key=lambda mnt: mnt["Distance"]):
