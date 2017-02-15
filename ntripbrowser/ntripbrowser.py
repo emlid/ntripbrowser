@@ -22,10 +22,6 @@
 # along with ntripbrowser.  If not, see <http://www.gnu.org/licenses/>.
 # from __future__ import unicode_literals
 
-# python ntripbrowser.py -p 2101 196.15.132.2 -v
-# .decode('cp1251')
-#         url_data = url_data.encode('utf8')
-
 import argparse
 import pydoc
 import subprocess
@@ -261,21 +257,5 @@ def main():
             NTRIP(url_data, window_size, args.verbose, args.NETtable,
                 args.CATtable, args.no_pager)
 
-
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
