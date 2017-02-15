@@ -22,12 +22,17 @@
 # along with ntripbrowser.  If not, see <http://www.gnu.org/licenses/>.
 # from __future__ import unicode_literals
 
+# python ntripbrowser.py -p 2101 196.15.132.2 -v
+# .decode('cp1251')
+#         url_data = url_data.encode('utf8')
 
 import argparse
 import pydoc
 import subprocess
 from texttable import Texttable
 import httplib
+import chardet
+from geopy.distance import vincenty
 
 def getScreenResolution():
     cmd = "stty size"
@@ -48,7 +53,7 @@ class NTRIP(object):
     STR_headers = ["Mountpoint","ID","Format","Format-Details",
         "Carrier","Nav-System","Network","Country","Latitude",
         "Longitude","NMEA","Solution","Generator","Compr-Encrp",
-        "Authentication","Fee","Bitrate",""]
+        "Authentication","Fee","Bitrate","Other Details"]
 
     STR_align = ['c', 'l', 'c', 'r', 'c',
                  'c', 'c', 'c', 'r', 'r',
@@ -61,7 +66,7 @@ class NTRIP(object):
 
     CAS_headers = ["Host","Port","ID","Operator",
         "NMEA","Country","Latitude","Longitude",
-        "Fallback\nHost","Fallback\nPort",""]
+        "Fallback\nHost","Fallback\nPort","Site"]
 
 
     CAS_align = ['l', 'c', 'l', 'c', 'c',
@@ -112,16 +117,16 @@ class NTRIP(object):
         return True
 
     def crop_sourcetable(self, sourcetable):
-        CAS = sourcetable.find('CAS')
-        NET = sourcetable.find('NET')
-        STR = sourcetable.find('STR')
+        CAS = sourcetable.find('\n'+'CAS')
+        NET = sourcetable.find('\n'+'NET')
+        STR = sourcetable.find('\n'+'STR')
         first = CAS if (CAS != -1) else (NET if NET != -1 else STR)
         last = sourcetable.find('ENDSOURCETABLE')
         self.sourcetable = sourcetable[first:last]
 
     def parce_sourcetable(self):
         for NTRIP_data in self.sourcetable.split('\n'):
-            NTRIP_data_list = NTRIP_data.split(';')
+            NTRIP_data_list = NTRIP_data.split(';', 18)
             if NTRIP_data_list[0] == 'STR':
                 NTRIP_data_list[4] = NTRIP_data_list[4].replace(',', '\n')
                 NTRIP_data_list[6] = NTRIP_data_list[6].replace('+', '\n')
@@ -188,6 +193,8 @@ class NTRIP(object):
 
         display_output(output_data, self.height, self.nopager)
 
+
+
 def argparser():
     parser = argparse.ArgumentParser(description='Parse NTRIP sourcetable')
     parser.add_argument("url", help="NTRIP sourcetable address")
@@ -213,8 +220,8 @@ def main():
         from urllib2 import urlopen
     except ImportError:
         from urllib import urlopen
-
     args = argparser()
+
     if (args.url.find("http") != -1):
         pream = ''
     else:
@@ -228,9 +235,24 @@ def main():
     try:
         NTRIP_url = urlopen(url_for_parse, timeout = args.timeout)
         url_data = NTRIP_url.read()
+    
+        encoding_detect = chardet.detect(url_data)
+        encoding_key = encoding_detect.get('encoding')
+        url_data = url_data.decode(encoding_key)
+
     except (IOError, httplib.HTTPException):
         print "Socket error. Connection refused"
+
     else:
+        url_for_parse = '{}{}:{}/sourcetable.txt'.format(pream, args.url, args.port)
+        NTRIP_url = urlopen(url_for_parse, timeout = args.timeout)
+        url_data = NTRIP_url.read()
+    
+        encoding_detect = chardet.detect(url_data)
+        encoding_key = encoding_detect.get('encoding')
+        url_data = url_data.decode(encoding_key)
+
+    finally:
         NTRIP_url.close()
         window_size = getScreenResolution()
         if args.source:
@@ -239,5 +261,21 @@ def main():
             NTRIP(url_data, window_size, args.verbose, args.NETtable,
                 args.CATtable, args.no_pager)
 
+
 if __name__ == '__main__':
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
