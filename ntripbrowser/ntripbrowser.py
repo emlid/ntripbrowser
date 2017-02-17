@@ -137,18 +137,10 @@ def station_distance(ntrip_dictionary, base_point):
         "str": add_distance_row(ntrip_dictionary.get('str'), base_point)
     }
 
-def main():
-    args = argparser()
-    NTRIP_url = None
-    if (args.url.find("http") != -1):
-        pream = ''
-    else:
-        pream = 'http://'
-    ntrip_url = '{}{}:{}'.format(pream, args.url, args.port)
-    print(ntrip_url)
-
+def get_ntrip(ntrip_url, timeout, base_point):
+    print ntrip_url
     try:
-        ntrip_table_raw = read_url(ntrip_url, timeout=args.timeout)
+        ntrip_table_raw = read_url(ntrip_url, timeout=timeout)
     except (IOError, httplib.HTTPException):
         print("Bad url")
         pass
@@ -156,8 +148,25 @@ def main():
         ntrip_table_raw_decoded = decode_text(ntrip_table_raw)
         ntrip_tables = parse_ntrip_table(ntrip_table_raw_decoded)
         ntrip_dictionary = form_ntrip_entries(ntrip_tables)
-        station_dict = station_distance(ntrip_dictionary, base_point = (args.BasePointCoord))
+        station_dict = station_distance(ntrip_dictionary, base_point = base_point)
         print station_dict
+        return station_dict
+
+def main():
+    args = argparser()
+    if (args.url.find("http") != -1):
+        pream = ''
+    else:
+        pream = 'http://'
+    ntrip_url = '{}{}:{}'.format(pream, args.url, args.port)
+
+    try:
+        get_ntrip(ntrip_url, args.timeout, args.BasePointCoord)
+    except:
+        pass
+    else:
+        ntrip_url = '{}{}:{}/sourcetable.txt'.format(pream, args.url, args.port)
+        get_ntrip(ntrip_url, args.timeout, args.BasePointCoord)
 
 if __name__ == '__main__':
     main()
