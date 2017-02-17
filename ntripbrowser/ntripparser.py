@@ -20,10 +20,11 @@ def read_data_from_url(url, port, timeout):
 
 def get_mountpoints(url, port=2101, my_position=None, timeout=None):
     tables = NTRIP(read_data_from_url(url, port, timeout))
+    print tables
     if my_position is not None:
         for mountpoint in tables.str_data:
+            print mountpoint.point
             mountpoint.distance = get_nearest_point(mountpoint.point, my_position)
-
     return [dict(mnt.data) for mnt in tables.str_data]
 
 class STR(object):
@@ -134,7 +135,7 @@ class NTRIP(object):
 
         self.check_page_status()
         self.crop_sourcetable()
-        self.parce_sourcetable()
+        self.parse_sourcetable()
 
     def check_page_status(self):
         status = re.search("(?<=SOURCETABLE )[0-9]+", self.sourcetable, re.MULTILINE).group(0)
@@ -151,9 +152,10 @@ class NTRIP(object):
         last = self.sourcetable.find('ENDSOURCETABLE')
         self.sourcetable = self.sourcetable[first:last]
 
-    def parce_sourcetable(self):
+    def parse_sourcetable(self):
         for NTRIP_data in self.sourcetable.split('\n'):
             NTRIP_data_list = NTRIP_data.split(';')
+            print NTRIP_data_list
             if NTRIP_data_list[0] == 'STR':
                 self.str_data.append(STR(NTRIP_data_list[1:]))
             if NTRIP_data_list[0] == 'CAS':
