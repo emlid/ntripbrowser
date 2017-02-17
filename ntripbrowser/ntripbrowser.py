@@ -25,187 +25,8 @@
 import urllib2
 import httplib
 import argparse
-import pydoc
-import subprocess
-from texttable import Texttable
 import chardet
 from geopy.distance import vincenty
-
-def getScreenResolution():
-    cmd = "stty size"
-    output = subprocess.check_output(cmd, shell=True, stderr=subprocess.PIPE)
-    size = output.strip().split()
-    return size
-
-def display_output(message, max_height, nopager=False):
-    if (nopager or
-        len(message.split('\n')) < max_height):
-        print message.strip()
-    else:
-        pydoc.pager(message.strip())
-
-
-class NTRIP(object):
-
-    STR_headers = ["Mountpoint","ID","Format","Format-Details",
-        "Carrier","Nav-System","Network","Country","Latitude",
-        "Longitude","NMEA","Solution","Generator","Compr-Encrp",
-        "Authentication","Fee","Bitrate","Other Details"]
-
-    STR_align = ['c', 'l', 'c', 'r', 'c',
-                 'c', 'c', 'c', 'r', 'r',
-                 'c', 'c', 'c', 'c', 'c',
-                 'c', 'c', 'c']
-
-    STR_valign = list('m'*18)
-
-    STR_non_verbose = [0, 1, 2, 5, 7]
-
-    CAS_headers = ["Host","Port","ID","Operator",
-        "NMEA","Country","Latitude","Longitude",
-        "Fallback\nHost","Fallback\nPort","Site"]
-
-
-    CAS_align = ['l', 'c', 'l', 'c', 'c',
-                 'c', 'r', 'r', 'r', 'c',
-                 'l']
-
-    CAS_valign = list('m'*11)
-
-
-    NET_headers = ["ID","Operator","Authentication",
-        "Fee","Web-Net","Web-Str","Web-Reg",""]
-
-
-    NET_align = ['c', 'c', 'c', 'c',
-                 'l', 'l', 'l', 'c']
-
-    NET_valign = list('m'*8)
-
-    def __init__(self, sourcetable, window_size, verbose = False,
-            show_net = False, show_cas = False,
-            nopager = False):
-
-        self.height = int(window_size[0])
-        self.width = int(window_size[1])
-        self.verbose = verbose
-        self.show_net = show_net
-        self.show_cas = show_cas
-        self.nopager = nopager
-        self.sourcetable = None
-        self.str_data = [self.STR_headers]
-        self.cas_data = [self.CAS_headers]
-        self.net_data = [self.NET_headers]
-        self.caster_data = {}
-        
-
-        if self.check_page_status(sourcetable):
-            self.crop_sourcetable(sourcetable)
-            self.parse_sourcetable()
-            self.create_ascii_table()
-            self.display_tables()
-
-    def check_page_status(self, sourcetable):
-        find = sourcetable.find('SOURCETABLE')
-        find_status = find + len('SOURCETABLE') + 1
-        status = sourcetable[find_status:find_status+3]
-        if status != '200':
-            display_output("Error page code: {}".format(status),
-                self.height, self.nopager)
-            return False
-        return True
-
-    def crop_sourcetable(self, sourcetable):
-        CAS = sourcetable.find('\n'+'CAS')
-        NET = sourcetable.find('\n'+'NET')
-        STR = sourcetable.find('\n'+'STR')
-        first = CAS if (CAS != -1) else (NET if NET != -1 else STR)
-        last = sourcetable.find('ENDSOURCETABLE')
-        self.sourcetable = sourcetable[first:last]
-
-    def parse_sourcetable(self):
-        for NTRIP_data in self.sourcetable.split('\n'):
-            NTRIP_data_list = NTRIP_data.split(';', 18)
-            if NTRIP_data_list[0] == 'STR':
-                NTRIP_data_list[4] = NTRIP_data_list[4].replace(',', '\n')
-                NTRIP_data_list[6] = NTRIP_data_list[6].replace('+', '\n')
-                self.str_data.append(NTRIP_data_list[1:])
-                
-                ntrip_caster_info = dict(zip(self.STR_headers, NTRIP_data_list[1:]))
-                str_latlon = (ntrip_caster_info['Latitude'],ntrip_caster_info['Longitude'])              
-                self.caster_data.update(ntrip_caster_info)
-
-                self.str_distance = get_distance(str_latlon)
-
-
-            if NTRIP_data_list[0] == 'CAS':
-                if len(NTRIP_data_list) > len(self.CAS_headers):
-                    self.cas_data.append(NTRIP_data_list[1:])
-            if NTRIP_data_list[0] == 'NET':
-                if len(NTRIP_data_list) > len(self.NET_headers):
-                    self.net_data.append(NTRIP_data_list[1:])
-        
-    # @property
-    # def point(self):
-    #     return (float(self.caster_data['Latitude']), 
-    #         float(self.caster_data['Longitude']))
-
-
-    def change_verbosity(self):
-        align = [self.STR_align[i] for i in self.STR_non_verbose]
-        valign = [self.STR_valign[i] for i in self.STR_non_verbose]
-        data = []
-        for elem in self.str_data:
-            data.append([elem[i] for i in self.STR_non_verbose])
-
-        self.str_data = data
-        self.STR_align = align
-        self.STR_valign = valign
-
-    def create_ascii_table(self):
-        if not self.verbose:
-            self.change_verbosity()
-        if len(self.str_data) > 1:
-            self.STR_table = Texttable(max_width = self.width)
-            self.STR_table.add_rows(self.str_data)
-            self.STR_table.set_cols_align(self.STR_align)
-            self.STR_table.set_cols_valign(self.STR_valign)
-           
-        else:
-            self.STR_table = None
-
-        if self.show_cas:
-            if len(self.cas_data) > 1:
-                self.CAS_table = Texttable(max_width = self.width)
-                self.CAS_table.add_rows(self.cas_data)
-                self.CAS_table.set_cols_align(self.CAS_align)
-                self.CAS_table.set_cols_valign(self.CAS_valign)
-            else:
-                self.CAS_table = None
-        if self.show_net:
-            if len(self.net_data) > 1:
-                self.NET_table = Texttable(max_width = self.width)
-                self.NET_table.add_rows(self.net_data)
-                self.NET_table.set_cols_align(self.NET_align)
-                self.NET_table.set_cols_valign(self.NET_valign)
-            else:
-                self.NET_table = None
-
-    def display_tables(self):
-        self.STR_table._compute_cols_width()
-        output_data = "{:=^{}}\n\n".format("STR Table", 40)
-        if self.STR_table:
-            output_data += self.STR_table.draw() + '\n\n'
-        if self.show_cas:
-            output_data += "{:=^{}}\n\n".format("CAS Table", 40)
-            if self.CAS_table:
-                output_data += self.CAS_table.draw() + '\n\n'
-        if self.show_net:
-            output_data += "{:=^{}}\n\n".format("NET Table", 40)
-            if self.NET_table:
-                output_data += self.NET_table.draw()
-
-        display_output(output_data, self.height, self.nopager)
 
 def argparser():
     parser = argparse.ArgumentParser(description='Parse NTRIP sourcetable')
@@ -227,14 +48,6 @@ def argparser():
     parser.add_argument("-b", "--BasePointCoord",
                         help="add base point coordiantes x,y")
     return parser.parse_args()
-
-
-
-
-
-
-
-
 
 def read_url(url, timeout):
     ntrip_request = urllib2.urlopen(url, timeout=timeout)
@@ -272,7 +85,6 @@ def extract_ntrip_entry_strings(raw_table):
             cas_list.append(row)
         elif row.startswith("NET"):
             net_list.append(row)
-
     return str_list, cas_list, net_list
 
 def form_ntrip_entries(ntrip_tables):
@@ -287,20 +99,17 @@ def form_str_dictionary(str_list):
         "Carrier","Nav-System","Network","Country","Latitude",
         "Longitude","NMEA","Solution","Generator","Compr-Encrp",
         "Authentication","Fee","Bitrate","Other Details"]
-
     return form_dictionaries(STR_headers, str_list)
 
 def form_cas_dictionary(cas_list):
     CAS_headers = ["Host","Port","ID","Operator",
         "NMEA","Country","Latitude","Longitude",
         "Fallback\nHost","Fallback\nPort","Site"]
-
     return form_dictionaries(CAS_headers, cas_list)
 
 def form_net_dictionary(net_list):
     NET_headers = ["ID","Operator","Authentication",
         "Fee","Web-Net","Web-Str","Web-Reg",""]
-
     return form_dictionaries(NET_headers, net_list)
 
 def form_dictionaries(headers, line_list):
@@ -309,7 +118,6 @@ def form_dictionaries(headers, line_list):
         line_dict = i.split(";", len(headers))[1:]
         info = dict(zip(headers, line_dict))
         dict_list.append(info)
-
     return dict_list
 
 def get_distance(obs_point, base_point):
@@ -332,12 +140,10 @@ def station_distance(ntrip_dictionary, base_point):
 def main():
     args = argparser()
     NTRIP_url = None
-
     if (args.url.find("http") != -1):
         pream = ''
     else:
         pream = 'http://'
-
     ntrip_url = '{}{}:{}'.format(pream, args.url, args.port)
     print(ntrip_url)
 
@@ -351,29 +157,7 @@ def main():
         ntrip_tables = parse_ntrip_table(ntrip_table_raw_decoded)
         ntrip_dictionary = form_ntrip_entries(ntrip_tables)
         station_dict = station_distance(ntrip_dictionary, base_point = (args.BasePointCoord))
+        print station_dict
 
-    #     print "Socket error. Connection refused"
-
-    # else:
-    #     url_for_parse = '{}{}:{}/sourcetable.txt'.format(pream, args.url, args.port)
-    #     NTRIP_url = urlopen(url_for_parse, timeout = args.timeout)
-    #     ntrip_response = NTRIP_url.read()
-    
-    #     encoding_detect = chardet.detect(ntrip_response)
-    #     encoding_key = encoding_detect.get('encoding')
-    #     ntrip_response = ntrip_response.decode(encoding_key)
-
-    # finally:
-    #     if NTRIP_url == None: ###
-    #         return
-    #     else:
-    #         NTRIP_url.close()
-    #         window_size = getScreenResolution()
-    #         if args.source:
-    #             display_output(ntrip_response, int(window_size[0]),  args.no_pager)
-    #         else:
-    #             ntrip = NTRIP(ntrip_response, window_size, args.verbose, args.NETtable,
-    #                 args.CATtable, args.no_pager)
-            
 if __name__ == '__main__':
     main()
