@@ -28,6 +28,9 @@ import argparse
 import chardet
 from geopy.distance import vincenty
 
+class NtripError(Exception):
+    pass
+
 def argparser():
     parser = argparse.ArgumentParser(description='Parse NTRIP sourcetable')
     parser.add_argument("url", help="NTRIP sourcetable address")
@@ -47,16 +50,19 @@ def argparser():
                         help="add timeout", default=None)
     parser.add_argument("-b", "--BasePointCoord",
                         help="add base point coordiantes x,y")
+
     return parser.parse_args()
 
 def read_url(url, timeout):
     ntrip_request = urllib2.urlopen(url, timeout = timeout)
     ntrip_table_raw = ntrip_request.read()
     ntrip_request.close()
+
     return ntrip_table_raw
 
 def decode_text(text):
     detected_table_encoding = chardet.detect(text)['encoding']
+
     return text.decode(detected_table_encoding)
 
 def crop_sourcetable(sourcetable):
@@ -65,12 +71,16 @@ def crop_sourcetable(sourcetable):
     STR = sourcetable.find('\n'+'STR')
     first = CAS if (CAS != -1) else (NET if NET != -1 else STR)
     last = sourcetable.find('ENDSOURCETABLE')
+
     return sourcetable[first:last]
 
 def parse_ntrip_table(raw_text):
-    raw_table = crop_sourcetable(raw_text)
-    ntrip_tables = extract_ntrip_entry_strings(raw_table)
-    return ntrip_tables
+    if 'SOURCETABLE 200 OK' in raw_text:
+        raw_table = crop_sourcetable(raw_text)
+        ntrip_tables = extract_ntrip_entry_strings(raw_table)
+        return ntrip_tables
+    else:
+        raise NtripError("No data on the page")
 
 def extract_ntrip_entries(raw_table):
     str_list, cas_list, net_list = extract_ntrip_entry_strings(raw_table)
@@ -85,6 +95,7 @@ def extract_ntrip_entry_strings(raw_table):
             cas_list.append(row)
         elif row.startswith("NET"):
             net_list.append(row)
+
     return str_list, cas_list, net_list
 
 def form_ntrip_entries(ntrip_tables):
@@ -99,17 +110,20 @@ def form_str_dictionary(str_list):
         "Carrier","Nav-System","Network","Country","Latitude",
         "Longitude","NMEA","Solution","Generator","Compr-Encrp",
         "Authentication","Fee","Bitrate","Other Details"]
+
     return form_dictionaries(STR_headers, str_list)
 
 def form_cas_dictionary(cas_list):
     CAS_headers = ["Host","Port","ID","Operator",
         "NMEA","Country","Latitude","Longitude",
         "FallbackHost","FallbackPort","Site","Other Details"]
+
     return form_dictionaries(CAS_headers, cas_list)
 
 def form_net_dictionary(net_list):
     NET_headers = ["ID","Operator","Authentication",
         "Fee","Web-Net","Web-Str","Web-Reg","Other Details"]
+
     return form_dictionaries(NET_headers, net_list)
 
 def form_dictionaries(headers, line_list):
@@ -118,38 +132,57 @@ def form_dictionaries(headers, line_list):
         line_dict = i.split(";", len(headers))[1:]
         info = dict(zip(headers, line_dict))
         dict_list.append(info)
+
     return dict_list
 
 def get_distance(obs_point, base_point):
+
     return vincenty(obs_point, base_point).kilometers
+
+def get_float_coordinates(obs_point):
+    obs_point_list = []
+    for coordinate in obs_point:
+        try:
+            float_coordinate = float(coordinate)
+        except TypeError:
+            float_coordinate = None
+        except ValueError:
+            try:
+                float_coordinate = float(coordinate.replace(',', '.'))
+            except ValueError:
+                float_coordinate = None
+        finally:
+            obs_point_list.append(float_coordinate)
+
+    return tuple(obs_point_list)
+
 
 def add_distance_row(ntrip_type_dictionary, base_point):
     for station in ntrip_type_dictionary:
-        dictionary_latlon = (station.get('Latitude'), station.get('Longitude'))
-        distance = get_distance(dictionary_latlon, base_point)
+        latlon = get_float_coordinates((station.get('Latitude'), station.get('Longitude')))
+        distance = get_distance(latlon, base_point)
         station['Distance'] = distance
     return ntrip_type_dictionary
 
 def station_distance(ntrip_dictionary, base_point):
     return {
-        "cas": add_distance_row(ntrip_dictionary.get('cas'), base_point = base_point),
-        "net": add_distance_row(ntrip_dictionary.get('net'), base_point = base_point),
-        "str": add_distance_row(ntrip_dictionary.get('str'), base_point = base_point)
+        "cas": add_distance_row(ntrip_dictionary.get('cas'), base_point),
+        "net": add_distance_row(ntrip_dictionary.get('net'), base_point),
+        "str": add_distance_row(ntrip_dictionary.get('str'), base_point)
     }
 
-def get_ntrip(ntrip_url, timeout, base_point):
+def get_ntrip(ntrip_url, timeout, base_point = None):
     print ntrip_url
     try:
         ntrip_table_raw = read_url(ntrip_url, timeout = timeout)
     except (IOError, httplib.HTTPException):
-        print("Bad URL")
-        pass
+        raise NtripError ("Bad URL")
     else:
         ntrip_table_raw_decoded = decode_text(ntrip_table_raw)
         ntrip_tables = parse_ntrip_table(ntrip_table_raw_decoded)
         ntrip_dictionary = form_ntrip_entries(ntrip_tables)
-        station_dictionary = station_distance(ntrip_dictionary, base_point = base_point)
-        print station_dictionary
+        station_dictionary = station_distance(ntrip_dictionary, base_point)
+        
         return station_dictionary
 
 def main():
@@ -161,12 +194,18 @@ def main():
     ntrip_url = '{}{}:{}'.format(pream, args.url, args.port)
 
     try:
-        get_ntrip(ntrip_url, args.timeout, args.BasePointCoord)
-    except:
-        pass
+        ntrip = get_ntrip(ntrip_url, args.timeout, args.BasePointCoord)
+    except NtripError:
+        print("Error")
+        try:
+            ntrip_url = '{}{}:{}/sourcetable.txt'.format(pream, args.url, args.port)
+            ntrip = get_ntrip(ntrip_url, args.timeout, args.BasePointCoord)
+        except NtripError:
+            print("Error")
+        else:
+            print ntrip
     else:
-        ntrip_url = '{}{}:{}/sourcetable.txt'.format(pream, args.url, args.port)
-        get_ntrip(ntrip_url, args.timeout, args.BasePointCoord)
+        print ntrip
 
 if __name__ == '__main__':
     main()
