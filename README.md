@@ -37,12 +37,12 @@ get_mountpoints(url, timeout=None, coordinates=None)
 ```
 Arguments:
 
-  `-url`   
+ - `url`   
 
 Optional arguments:
 
-  `-timeout`     
-  `-coordinates`   
+ - `timeout`     
+ - `coordinates`   
 
 ### Console Command
 ```python
