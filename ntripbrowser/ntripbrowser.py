@@ -104,12 +104,12 @@ def form_str_dictionary(str_list):
 def form_cas_dictionary(cas_list):
     CAS_headers = ["Host","Port","ID","Operator",
         "NMEA","Country","Latitude","Longitude",
-        "FallbackHost","FallbackPort","Site"]
+        "FallbackHost","FallbackPort","Site","Other Details"]
     return form_dictionaries(CAS_headers, cas_list)
 
 def form_net_dictionary(net_list):
     NET_headers = ["ID","Operator","Authentication",
-        "Fee","Web-Net","Web-Str","Web-Reg",""]
+        "Fee","Web-Net","Web-Str","Web-Reg","Other Details"]
     return form_dictionaries(NET_headers, net_list)
 
 def form_dictionaries(headers, line_list):
@@ -149,6 +149,7 @@ def get_ntrip(ntrip_url, timeout, base_point):
         ntrip_tables = parse_ntrip_table(ntrip_table_raw_decoded)
         ntrip_dictionary = form_ntrip_entries(ntrip_tables)
         station_dictionary = station_distance(ntrip_dictionary, base_point = base_point)
+        print station_dictionary
         return station_dictionary
 
 def main():
