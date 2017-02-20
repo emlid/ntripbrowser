@@ -1,6 +1,6 @@
 # ntripbrowser code is placed under the GPL license.
-# Written by Ivan Sapozhkov (ivan.sapozhkov@emlid.com)
-# Copyright (c) 2016, Emlid Limited
+# Written by Andrew Yushkevich (andrew.yushkevich@emlid.com)
+# Copyright (c) 2017, Emlid Limited
 # All rights reserved.
 
 # If you are interested in using ntripbrowser code as a part of a
@@ -50,7 +50,7 @@ def argparser():
     return parser.parse_args()
 
 def read_url(url, timeout):
-    ntrip_request = urllib2.urlopen(url, timeout=timeout)
+    ntrip_request = urllib2.urlopen(url, timeout = timeout)
     ntrip_table_raw = ntrip_request.read()
     ntrip_request.close()
     return ntrip_table_raw
@@ -104,7 +104,7 @@ def form_str_dictionary(str_list):
 def form_cas_dictionary(cas_list):
     CAS_headers = ["Host","Port","ID","Operator",
         "NMEA","Country","Latitude","Longitude",
-        "Fallback\nHost","Fallback\nPort","Site"]
+        "FallbackHost","FallbackPort","Site"]
     return form_dictionaries(CAS_headers, cas_list)
 
 def form_net_dictionary(net_list):
@@ -132,25 +132,24 @@ def add_distance_row(ntrip_type_dictionary, base_point):
 
 def station_distance(ntrip_dictionary, base_point):
     return {
-        "cas": add_distance_row(ntrip_dictionary.get('cas'), base_point),
-        "net": add_distance_row(ntrip_dictionary.get('net'), base_point),
-        "str": add_distance_row(ntrip_dictionary.get('str'), base_point)
+        "cas": add_distance_row(ntrip_dictionary.get('cas'), base_point = base_point),
+        "net": add_distance_row(ntrip_dictionary.get('net'), base_point = base_point),
+        "str": add_distance_row(ntrip_dictionary.get('str'), base_point = base_point)
     }
 
 def get_ntrip(ntrip_url, timeout, base_point):
     print ntrip_url
     try:
-        ntrip_table_raw = read_url(ntrip_url, timeout=timeout)
+        ntrip_table_raw = read_url(ntrip_url, timeout = timeout)
     except (IOError, httplib.HTTPException):
-        print("Bad url")
+        print("Bad URL")
         pass
     else:
         ntrip_table_raw_decoded = decode_text(ntrip_table_raw)
         ntrip_tables = parse_ntrip_table(ntrip_table_raw_decoded)
         ntrip_dictionary = form_ntrip_entries(ntrip_tables)
-        station_dict = station_distance(ntrip_dictionary, base_point = base_point)
-        print station_dict
-        return station_dict
+        station_dictionary = station_distance(ntrip_dictionary, base_point = base_point)
+        return station_dictionary
 
 def main():
     args = argparser()
