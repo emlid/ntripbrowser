@@ -37,9 +37,12 @@ class NtripError(Exception):
 def argparser():
     parser = argparse.ArgumentParser(description="Parse NTRIP sourcetable")
     parser.add_argument("url", help="NTRIP sourcetable address")
-    parser.add_argument("-p", "--port", type=int, help="Set url port. Standard port is 2101", default=2101)
-    parser.add_argument("-t", "--timeout", type=int, help="add timeout", default=None)
-    parser.add_argument("-c", "--coordinates", help="Add NTRIP station distance to this coordiante", nargs=2)
+    parser.add_argument("-p", "--port", type=int,
+                        help="Set url port. Standard port is 2101", default=2101)
+    parser.add_argument("-t", "--timeout", type=int,
+                        help="add timeout", default=None)
+    parser.add_argument("-c", "--coordinates",
+                        help="Add NTRIP station distance to this coordiante", nargs=2)
 
     return parser.parse_args()
 
@@ -191,39 +194,46 @@ def get_ntrip_table(ntrip_url, timeout, base_point=None):
 
         return station_dictionary
 
-def display_ntrip_table(ntrip_table):
-    print(ntrip_table)
 
-
-def main():
-    args = argparser()
-
-    if "http" in args.url:
-        pream = ''
-    else:
-        pream = 'http://'
-
-    ntrip_url = '{}{}:{}'.format(pream, args.url, args.port)
-    urls_to_try = (ntrip_url, ntrip_url + "/sourcetable.txt")
+def get_mountpoints(url, coordinates=None):
+    urls_to_try = (url, url + "/sourcetable.txt")
 
     for url in urls_to_try:
         print("Trying to get NTRIP source table from {}".format(url))
         try:
             ntrip_table = get_ntrip_table(url, args.timeout, args.coordinates)
         except NtripError:
-            print("An error occurred")
+            pass
         else:
-            display_ntrip_table(ntrip_table)
-            break
+            return ntrip_table
+
+    raise NtripError
+
+
+def display_ntrip_table(ntrip_table):
+    print(ntrip_table)
+
+
+def parse_url(cli_arguments):
+    if "http" in args.url:
+        pream = ''
+    else:
+        pream = 'http://'
+
+    return '{}{}:{}'.format(pream, args.url, args.port)
+
+
+def main():
+    args = argparser()
+    ntrip_url = parse_url(args)
+
+    try:
+        ntrip_table = get_mountpoints(ntrip_url, args.coordinates)
+    except NtripError:
+        print("An error occurred")
+    else:
+        display_ntrip_table(ntrip_table)
+
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
-
-
