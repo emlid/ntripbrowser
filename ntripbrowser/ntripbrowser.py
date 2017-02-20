@@ -42,7 +42,7 @@ def argparser():
     parser.add_argument("-t", "--timeout", type=int,
                         help="add timeout", default=None)
     parser.add_argument("-c", "--coordinates",
-                        help="Add NTRIP station distance to this coordiante", nargs=2)
+                        help="Add NTRIP station distance to this coordinate", nargs=2)
 
     return parser.parse_args()
 
