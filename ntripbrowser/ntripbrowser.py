@@ -177,7 +177,7 @@ def station_distance(ntrip_dictionary, base_point):
     }
 
 
-def get_ntrip(ntrip_url, timeout, base_point=None):
+def get_ntrip_table(ntrip_url, timeout, base_point=None):
     print ntrip_url
     try:
         ntrip_table_raw = read_url(ntrip_url, timeout=timeout)
@@ -191,30 +191,39 @@ def get_ntrip(ntrip_url, timeout, base_point=None):
 
         return station_dictionary
 
+def display_ntrip_table(ntrip_table):
+    print(ntrip_table)
+
 
 def main():
     args = argparser()
-    print(args.coordinates)
-    if (args.url.find("http") != -1):
+
+    if "http" in args.url:
         pream = ''
     else:
         pream = 'http://'
-    ntrip_url = '{}{}:{}'.format(pream, args.url, args.port)
 
-    try:
-        ntrip = get_ntrip(ntrip_url, args.timeout, args.coordinates)
-    except NtripError:
-        print("Error")
+    ntrip_url = '{}{}:{}'.format(pream, args.url, args.port)
+    urls_to_try = (ntrip_url, ntrip_url + "/sourcetable.txt")
+
+    for url in urls_to_try:
+        print("Trying to get NTRIP source table from {}".format(url))
         try:
-            ntrip_url = '{}{}:{}/sourcetable.txt'.format(
-                pream, args.url, args.port)
-            ntrip = get_ntrip(ntrip_url, args.timeout, args.coordinates)
+            ntrip_table = get_ntrip_table(url, args.timeout, args.coordinates)
         except NtripError:
-            print("Error")
+            print("An error occurred")
         else:
-            print ntrip
-    else:
-        print ntrip
+            display_ntrip_table(ntrip_table)
+            break
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
+
+
+
+
