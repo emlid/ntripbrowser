@@ -58,7 +58,7 @@ def read_url(url, timeout):
 def decode_text(text):
     detected_table_encoding = chardet.detect(text)['encoding']
 
-    return text.decode(detected_table_encoding)
+    return text.decode(detected_table_encoding).encode('utf8')
 
 
 def crop_sourcetable(sourcetable):
@@ -227,7 +227,7 @@ def main():
     ntrip_url = parse_url(args)
 
     try:
-        ntrip_table = get_mountpoints(ntrip_url, args.timeout, args.coordinates)
+        ntrip_table = get_mountpoints(ntrip_url, timeout=args.timeout, coordinates=args.coordinates)
     except NtripError:
         print("An error occurred")
     else:
