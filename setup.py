@@ -2,11 +2,11 @@ from setuptools import setup
 
 setup(
     name='ntripbrowser',
-    version='0.0.9',
-    author='Ivan Sapozhkov',
-    author_email='ivan.sapozhkov@emlid.com',
+    version='1.0.0',
+    author='Andrew Yushkevich',
+    author_email='andrew.yushkevich@emlid.com',
     packages=['ntripbrowser'],
-    install_requires=['texttable', 'geopy'],
+    install_requires=['chardet', 'geopy'],
     license = 'GPLv3',
     url='https://github.com/emlid/ntripbrowser.git',
     description='NTRIP Browser for terminal',
