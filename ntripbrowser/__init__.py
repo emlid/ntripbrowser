@@ -1,1 +1,1 @@
-from .ntripparser import get_mountpoints, NtripError
+from .ntripbrowser import get_mountpoints, NtripError
