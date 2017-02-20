@@ -26,53 +26,47 @@ import urllib2
 import httplib
 import argparse
 import chardet
+
 from geopy.distance import vincenty
+
 
 class NtripError(Exception):
     pass
 
+
 def argparser():
-    parser = argparse.ArgumentParser(description='Parse NTRIP sourcetable')
+    parser = argparse.ArgumentParser(description="Parse NTRIP sourcetable")
     parser.add_argument("url", help="NTRIP sourcetable address")
-    parser.add_argument("-p", "--port", type=int,
-                        help="change url port. Standart port is 2101", default=2101)
-    parser.add_argument("-v", "--verbose", action="store_true",
-                        help="increase output verbosity")
-    parser.add_argument("-N", "--NETtable", action="store_true",
-                        help="additional show NET table")
-    parser.add_argument("-C", "--CATtable", action="store_true",
-                        help="additional show CAT table")
-    parser.add_argument("-n", "--no-pager", action="store_true",
-                        help="no pager")
-    parser.add_argument("-s", "--source", action="store_true",
-                        help="display url source data")
-    parser.add_argument("-t", "--timeout", type=int,
-                        help="add timeout", default=None)
-    parser.add_argument("-b", "--BasePointCoord",
-                        help="add base point coordiantes x,y")
+    parser.add_argument("-p", "--port", type=int, help="Set url port. Standard port is 2101", default=2101)
+    parser.add_argument("-t", "--timeout", type=int, help="add timeout", default=None)
+    parser.add_argument("-c", "--coordinates", help="Add NTRIP station distance to this coordiante", nargs=2)
 
     return parser.parse_args()
 
+
 def read_url(url, timeout):
-    ntrip_request = urllib2.urlopen(url, timeout = timeout)
+    ntrip_request = urllib2.urlopen(url, timeout=timeout)
     ntrip_table_raw = ntrip_request.read()
     ntrip_request.close()
 
     return ntrip_table_raw
+
 
 def decode_text(text):
     detected_table_encoding = chardet.detect(text)['encoding']
 
     return text.decode(detected_table_encoding)
 
+
 def crop_sourcetable(sourcetable):
-    CAS = sourcetable.find('\n'+'CAS')
-    NET = sourcetable.find('\n'+'NET')
-    STR = sourcetable.find('\n'+'STR')
+    CAS = sourcetable.find('\n' + 'CAS')
+    NET = sourcetable.find('\n' + 'NET')
+    STR = sourcetable.find('\n' + 'STR')
     first = CAS if (CAS != -1) else (NET if NET != -1 else STR)
     last = sourcetable.find('ENDSOURCETABLE')
 
     return sourcetable[first:last]
+
 
 def parse_ntrip_table(raw_text):
     if 'SOURCETABLE 200 OK' in raw_text:
@@ -82,9 +76,11 @@ def parse_ntrip_table(raw_text):
     else:
         raise NtripError("No data on the page")
 
+
 def extract_ntrip_entries(raw_table):
     str_list, cas_list, net_list = extract_ntrip_entry_strings(raw_table)
     return form_ntrip_entries(str_list, cas_list, net_list)
+
 
 def extract_ntrip_entry_strings(raw_table):
     str_list, cas_list, net_list = [], [], []
@@ -98,6 +94,7 @@ def extract_ntrip_entry_strings(raw_table):
 
     return str_list, cas_list, net_list
 
+
 def form_ntrip_entries(ntrip_tables):
     return {
         "str": form_str_dictionary(ntrip_tables[0]),
@@ -105,26 +102,30 @@ def form_ntrip_entries(ntrip_tables):
         "net": form_net_dictionary(ntrip_tables[2])
     }
 
+
 def form_str_dictionary(str_list):
-    STR_headers = ["Mountpoint","ID","Format","Format-Details",
-        "Carrier","Nav-System","Network","Country","Latitude",
-        "Longitude","NMEA","Solution","Generator","Compr-Encrp",
-        "Authentication","Fee","Bitrate","Other Details"]
+    STR_headers = ["Mountpoint", "ID", "Format", "Format-Details",
+                   "Carrier", "Nav-System", "Network", "Country", "Latitude",
+                   "Longitude", "NMEA", "Solution", "Generator", "Compr-Encrp",
+                   "Authentication", "Fee", "Bitrate", "Other Details"]
 
     return form_dictionaries(STR_headers, str_list)
 
+
 def form_cas_dictionary(cas_list):
-    CAS_headers = ["Host","Port","ID","Operator",
-        "NMEA","Country","Latitude","Longitude",
-        "FallbackHost","FallbackPort","Site","Other Details"]
+    CAS_headers = ["Host", "Port", "ID", "Operator",
+                   "NMEA", "Country", "Latitude", "Longitude",
+                   "FallbackHost", "FallbackPort", "Site", "Other Details"]
 
     return form_dictionaries(CAS_headers, cas_list)
 
+
 def form_net_dictionary(net_list):
-    NET_headers = ["ID","Operator","Authentication",
-        "Fee","Web-Net","Web-Str","Web-Reg","Other Details"]
+    NET_headers = ["ID", "Operator", "Authentication",
+                   "Fee", "Web-Net", "Web-Str", "Web-Reg", "Other Details"]
 
     return form_dictionaries(NET_headers, net_list)
+
 
 def form_dictionaries(headers, line_list):
     dict_list = []
@@ -135,9 +136,11 @@ def form_dictionaries(headers, line_list):
 
     return dict_list
 
+
 def get_distance(obs_point, base_point):
 
     return vincenty(obs_point, base_point).kilometers
+
 
 def get_float_coordinates(obs_point):
     obs_point_list = []
@@ -159,10 +162,12 @@ def get_float_coordinates(obs_point):
 
 def add_distance_row(ntrip_type_dictionary, base_point):
     for station in ntrip_type_dictionary:
-        latlon = get_float_coordinates((station.get('Latitude'), station.get('Longitude')))
+        latlon = get_float_coordinates(
+            (station.get('Latitude'), station.get('Longitude')))
         distance = get_distance(latlon, base_point)
         station['Distance'] = distance
     return ntrip_type_dictionary
+
 
 def station_distance(ntrip_dictionary, base_point):
     return {
@@ -171,22 +176,25 @@ def station_distance(ntrip_dictionary, base_point):
         "str": add_distance_row(ntrip_dictionary.get('str'), base_point)
     }
 
-def get_ntrip(ntrip_url, timeout, base_point = None):
+
+def get_ntrip(ntrip_url, timeout, base_point=None):
     print ntrip_url
     try:
-        ntrip_table_raw = read_url(ntrip_url, timeout = timeout)
+        ntrip_table_raw = read_url(ntrip_url, timeout=timeout)
     except (IOError, httplib.HTTPException):
-        raise NtripError ("Bad URL")
+        raise NtripError("Bad URL")
     else:
         ntrip_table_raw_decoded = decode_text(ntrip_table_raw)
         ntrip_tables = parse_ntrip_table(ntrip_table_raw_decoded)
         ntrip_dictionary = form_ntrip_entries(ntrip_tables)
         station_dictionary = station_distance(ntrip_dictionary, base_point)
-        
+
         return station_dictionary
+
 
 def main():
     args = argparser()
+    print(args.coordinates)
     if (args.url.find("http") != -1):
         pream = ''
     else:
@@ -194,12 +202,13 @@ def main():
     ntrip_url = '{}{}:{}'.format(pream, args.url, args.port)
 
     try:
-        ntrip = get_ntrip(ntrip_url, args.timeout, args.BasePointCoord)
+        ntrip = get_ntrip(ntrip_url, args.timeout, args.coordinates)
     except NtripError:
         print("Error")
         try:
-            ntrip_url = '{}{}:{}/sourcetable.txt'.format(pream, args.url, args.port)
-            ntrip = get_ntrip(ntrip_url, args.timeout, args.BasePointCoord)
+            ntrip_url = '{}{}:{}/sourcetable.txt'.format(
+                pream, args.url, args.port)
+            ntrip = get_ntrip(ntrip_url, args.timeout, args.coordinates)
         except NtripError:
             print("Error")
         else:
