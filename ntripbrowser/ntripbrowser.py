@@ -140,9 +140,8 @@ def form_dictionaries(headers, line_list):
     return dict_list
 
 
-def get_distance(obs_point, base_point):
-
-    return vincenty(obs_point, base_point).kilometers
+def get_distance(obs_point, coordinates):
+    return vincenty(obs_point, coordinates).kilometers
 
 
 def get_float_coordinates(obs_point):
@@ -163,24 +162,24 @@ def get_float_coordinates(obs_point):
     return tuple(obs_point_list)
 
 
-def add_distance_row(ntrip_type_dictionary, base_point):
+def add_distance_row(ntrip_type_dictionary, coordinates):
     for station in ntrip_type_dictionary:
         latlon = get_float_coordinates(
             (station.get('Latitude'), station.get('Longitude')))
-        distance = get_distance(latlon, base_point)
+        distance = get_distance(latlon, coordinates)
         station['Distance'] = distance
     return ntrip_type_dictionary
 
 
-def station_distance(ntrip_dictionary, base_point):
+def add_distance(ntrip_dictionary, coordinates):
     return {
-        "cas": add_distance_row(ntrip_dictionary.get('cas'), base_point),
-        "net": add_distance_row(ntrip_dictionary.get('net'), base_point),
-        "str": add_distance_row(ntrip_dictionary.get('str'), base_point)
+        "cas": add_distance_row(ntrip_dictionary.get('cas'), coordinates),
+        "net": add_distance_row(ntrip_dictionary.get('net'), coordinates),
+        "str": add_distance_row(ntrip_dictionary.get('str'), coordinates)
     }
 
 
-def get_ntrip_table(ntrip_url, timeout, base_point=None):
+def get_ntrip_table(ntrip_url, timeout, coordinates=None):
     print ntrip_url
     try:
         ntrip_table_raw = read_url(ntrip_url, timeout=timeout)
@@ -190,18 +189,18 @@ def get_ntrip_table(ntrip_url, timeout, base_point=None):
         ntrip_table_raw_decoded = decode_text(ntrip_table_raw)
         ntrip_tables = parse_ntrip_table(ntrip_table_raw_decoded)
         ntrip_dictionary = form_ntrip_entries(ntrip_tables)
-        station_dictionary = station_distance(ntrip_dictionary, base_point)
+        station_dictionary = add_distance(ntrip_dictionary, coordinates)
 
         return station_dictionary
 
 
-def get_mountpoints(url, coordinates=None):
+def get_mountpoints(url, timeout=None, coordinates=None):
     urls_to_try = (url, url + "/sourcetable.txt")
 
     for url in urls_to_try:
         print("Trying to get NTRIP source table from {}".format(url))
         try:
-            ntrip_table = get_ntrip_table(url, args.timeout, args.coordinates)
+            ntrip_table = get_ntrip_table(url, timeout, coordinates)
         except NtripError:
             pass
         else:
@@ -215,12 +214,12 @@ def display_ntrip_table(ntrip_table):
 
 
 def parse_url(cli_arguments):
-    if "http" in args.url:
+    if "http" in cli_arguments.url:
         pream = ''
     else:
         pream = 'http://'
 
-    return '{}{}:{}'.format(pream, args.url, args.port)
+    return '{}{}:{}'.format(pream, cli_arguments.url, cli_arguments.port)
 
 
 def main():
@@ -228,7 +227,7 @@ def main():
     ntrip_url = parse_url(args)
 
     try:
-        ntrip_table = get_mountpoints(ntrip_url, args.coordinates)
+        ntrip_table = get_mountpoints(ntrip_url, args.timeout, args.coordinates)
     except NtripError:
         print("An error occurred")
     else:
