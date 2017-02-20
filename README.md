@@ -25,36 +25,24 @@ positional arguments:
 
 optional arguments:  
   -h, --help            Show this help message and exit  
-  -p PORT, --port PORT  Change url port. Default port is 2101  
-  -v, --verbose         Increase output verbosity  
-  -N, --NETtable        Additionaly show NET table  
-  -C, --CATtable        Additionaly show CAT table  
-  -n, --no-pager        No pager  
-  -s, --source          Display url source data  
+  -p PORT, --port PORT  Set url port. Standard port is 2101  
   -t, --timeout         Add timeout  
-  -b, --BasePointCoord  Add base point coordinates x,y
+  -c, --coordinates     Add NTRIP station distance to this coordinate
   ```
 
 ### Package API
 
-Output keys:
+```python
+get_mountpoints(url, timeout=None, coordinates=None)
+```
+Arguments:
 
--STR:
-  ```
-  "Mountpoint", "ID", "Format", "Format Details", "Carrier", "Nav System",
-  "Network", "Country", "Latitude", "Longitude", "NMEA", "SOL", "Generator",
-  "Compr-Encrp", "Authentication", "Fee", "Bitrate", "Other Details", "Distance"
-  ```
--CAS:
-  ```
-  "Host", "Port", "ID", "Operator", "NMEA", "Country", "Latitude", "Longitude",
-  "FallbackHost","FallbackPort","Site", "Other Details", "Distance"
-  ```
--NET:
-  ```
-  "ID", "Operator", "Authentication", "Fee", "Web-Net", "Web-Str", "Web-Reg", 
-  "Other Details"
-  ```
+  `-url`   
+
+Optional arguments:
+
+  `-timeout`     
+  `-coordinates`   
 
 ### Console Command
 ```python
