@@ -141,7 +141,10 @@ def form_dictionaries(headers, line_list):
 
 
 def get_distance(obs_point, coordinates):
-    return vincenty(obs_point, coordinates).kilometers
+    if coordinates is None:
+        return None
+    else:
+        return vincenty(obs_point, coordinates).kilometers
 
 
 def get_float_coordinates(obs_point):
