@@ -87,7 +87,7 @@ def extract_ntrip_entries(raw_table):
 
 def extract_ntrip_entry_strings(raw_table):
     str_list, cas_list, net_list = [], [], []
-    for row in raw_table.split("\n"):
+    for row in raw_table.splitlines():
         if row.startswith("STR"):
             str_list.append(row)
         elif row.startswith("CAS"):
