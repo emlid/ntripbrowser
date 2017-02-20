@@ -38,6 +38,7 @@ optional arguments:
 ### Package API
 
 Output keys:
+
 -STR:
   ```
   "Mountpoint", "ID", "Format", "Format Details", "Carrier", "Nav System",
@@ -55,7 +56,7 @@ Output keys:
   "Other Details"
   ```
 
-
+### Console Command
 ```python
 python ntripbrowser.py "url"
 ```
