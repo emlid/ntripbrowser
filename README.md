@@ -5,7 +5,7 @@ A simple Python API for browse NTRIP (Networked Transport of RTCM via Internet P
 ### Dependencies
 
 `geopy`
-`texttable`
+`chardet`
 
 The package was tested with **Python 2.7**
 
@@ -18,7 +18,7 @@ or clone and run `make install`
 ### Usage 
 
 ```
-ntripbrowser [-h] [-p PORT] [-v] [-N] [-C] [-n] [-s] url  
+ntripbrowser [-h] [-p PORT] [-v] [-N] [-C] [-n] [-s] [-t] [-b] url  
 
 positional arguments:  
   url                   NTRIP source table address
@@ -31,31 +31,32 @@ optional arguments:
   -C, --CATtable        Additionaly show CAT table  
   -n, --no-pager        No pager  
   -s, --source          Display url source data  
+  -t, --timeout         Add timeout  
+  -b, --BasePointCoord  Add base point coordinates x,y
   ```
-
 
 ### Package API
 
- - `get_mountpoints(url, port, my_position, timeout)`. Return list of dictionaries.  
-Input arguments:
-    - url: NTRIP url
-    - port: NTRIP port. Default value: 2101
-    - my_position: Point for distance calculation. Point format - (float(lat), float(lon)). Default value: None
-    - timeout: timeout for url request. Default value: None
-
 Output keys:
-```
-"Mountpoint", "ID", "Format", "Format Details", "Carrier", "Nav System",
-"Network", "Country", "Latitude", "Longitude", "NMEA", "SOL", "Generator",
-"Compr-Encrp", "Authentication", "Fee", "Bitrate", "Other Details", "Distance"
-```
+-STR:
+  ```
+  "Mountpoint", "ID", "Format", "Format Details", "Carrier", "Nav System",
+  "Network", "Country", "Latitude", "Longitude", "NMEA", "SOL", "Generator",
+  "Compr-Encrp", "Authentication", "Fee", "Bitrate", "Other Details", "Distance"
+  ```
+-CAS:
+  ```
+  "Host", "Port", "ID", "Operator", "NMEA", "Country", "Latitude", "Longitude",
+  "FallbackHost","FallbackPort","Site", "Other Details", "Distance"
+  ```
+-NET:
+  ```
+  "ID", "Operator", "Authentication", "Fee", "Web-Net", "Web-Str", "Web-Reg", 
+  "Other Details"
+  ```
 
 
 ```python
-from ntripbrowser import get_mountpoints
-
-mntpoints = get_mountpoints("ntrip.emlid.com", my_position=(59.96032, 30.33409))
-for mnt in sorted(mntpoints, key=lambda mnt: mnt["Distance"]):
-    print("{:10} ({}): {:.4f} km".format(mnt["Mountpoint"], mnt["Format"], mnt["Distance"]))
+python ntripbrowser.py "url"
 ```
 
