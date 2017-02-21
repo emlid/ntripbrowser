@@ -54,3 +54,12 @@ get_mountpoints(url, timeout=None, coordinates=None)
 > Use `coordinates` to pass your position coordinates in function and get distance to NTRIP station.    
 > Form of coordiantes must be `(x, y)` or `(x.x, y.y)` of latitude, longitude.
 
+####Result
+
+As a result you'll get a dictionary consisting of a lists of dictionaries with such structure:
+
+- CAS stations: `"Host", "Port", "ID", "Operator", "NMEA", "Country", "Latitude", "Longitude", "FallbackHost", "FallbackPort", "Site", "Other Details"` 
+
+- NET stations: `"ID", "Operator", "Authentication", "Fee", "Web-Net", "Web-Str", "Web-Reg", "Other Details"`    
+
+- STR stations: `"Mountpoint", "ID", "Format", "Format-Details","Carrier", "Nav-System", "Network", "Country", "Latitude", "Longitude", "NMEA", "Solution", "Generator", "Compr-Encrp", "Authentication", "Fee", "Bitrate", "Other Details"`
