@@ -51,6 +51,6 @@ get_mountpoints(url, timeout=None, coordinates=None)
 
  - `coordinates`    
  
-> Use `coordinates` to pass your position coordinates in function.    
+> Use `coordinates` to pass your position coordinates in function and get distance to NTRIP station.    
 > Form of coordiantes must be `(x, y)` or `(x.x, y.y)` of latitude, longitude.
 
