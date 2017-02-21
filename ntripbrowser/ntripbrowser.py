@@ -1,26 +1,33 @@
-# ntripbrowser code is placed under the GPL license.
+# ntripbrowser code is placed under the 3-Clause BSD License.
 # Written by Andrew Yushkevich (andrew.yushkevich@emlid.com)
-# Copyright (c) 2017, Emlid Limited
-# All rights reserved.
-
+#
 # If you are interested in using ntripbrowser code as a part of a
 # closed source project, please contact Emlid Limited (info@emlid.com).
-
-# This file is part of ntripbrowser.
-
-# ntripbrowser is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-
-# ntripbrowser is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with ntripbrowser.  If not, see <http://www.gnu.org/licenses/>.
-# from __future__ import unicode_literals
+#
+# Copyright (c) 2017, Emlid Limited
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of the <organization> nor the
+#       names of its contributors may be used to endorse or promote products
+#       derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Emlid Limited BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import urllib2
 import httplib
@@ -51,29 +58,18 @@ def read_url(url, timeout):
     ntrip_request = urllib2.urlopen(url, timeout=timeout)
     ntrip_table_raw = ntrip_request.read()
     ntrip_request.close()
-    
+
     return ntrip_table_raw
 
 
 def decode_text(text):
     detected_table_encoding = chardet.detect(text)['encoding']
-    
     return text.decode(detected_table_encoding).encode('utf8')
-
-
-def crop_sourcetable(sourcetable):
-    CAS = sourcetable.find('\n' + 'CAS')
-    NET = sourcetable.find('\n' + 'NET')
-    STR = sourcetable.find('\n' + 'STR')
-    first = CAS if (CAS != -1) else (NET if NET != -1 else STR)
-    last = sourcetable.find('ENDSOURCETABLE')
-
-    return sourcetable[first:last]
 
 
 def parse_ntrip_table(raw_text):
     if 'SOURCETABLE 200 OK' in raw_text:
-        raw_table = crop_sourcetable(raw_text)
+        raw_table = raw_text
         ntrip_tables = extract_ntrip_entry_strings(raw_table)
         return ntrip_tables
     else:
@@ -94,7 +90,7 @@ def extract_ntrip_entry_strings(raw_table):
             cas_list.append(row)
         elif row.startswith("NET"):
             net_list.append(row)
-    
+
     return str_list, cas_list, net_list
 
 
@@ -199,7 +195,6 @@ def get_ntrip_table(ntrip_url, timeout, coordinates=None):
 
 def get_mountpoints(url, timeout=None, coordinates=None):
     urls_to_try = (url, url + "/sourcetable.txt")
-
     for url in urls_to_try:
         print("Trying to get NTRIP source table from {}".format(url))
         try:
@@ -230,12 +225,12 @@ def main():
     ntrip_url = parse_url(args)
 
     try:
-        ntrip_table = get_mountpoints(ntrip_url, timeout=args.timeout, coordinates=args.coordinates)
+        ntrip_table = get_mountpoints(
+            ntrip_url, timeout=args.timeout, coordinates=args.coordinates)
     except NtripError:
         print("An error occurred")
     else:
         display_ntrip_table(ntrip_table)
-
 
 if __name__ == '__main__':
     main()
