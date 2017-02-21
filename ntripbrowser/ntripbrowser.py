@@ -51,13 +51,13 @@ def read_url(url, timeout):
     ntrip_request = urllib2.urlopen(url, timeout=timeout)
     ntrip_table_raw = ntrip_request.read()
     ntrip_request.close()
-
+    
     return ntrip_table_raw
 
 
 def decode_text(text):
     detected_table_encoding = chardet.detect(text)['encoding']
-
+    
     return text.decode(detected_table_encoding).encode('utf8')
 
 
@@ -94,7 +94,7 @@ def extract_ntrip_entry_strings(raw_table):
             cas_list.append(row)
         elif row.startswith("NET"):
             net_list.append(row)
-
+    
     return str_list, cas_list, net_list
 
 
