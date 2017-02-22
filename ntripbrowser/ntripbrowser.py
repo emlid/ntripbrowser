@@ -249,8 +249,7 @@ def main():
     ntrip_url = parse_url(args)
 
     try:
-        ntrip_table = get_mountpoints(
-            ntrip_url, timeout=args.timeout, coordinates=args.coordinates)
+        ntrip_table = get_mountpoints(ntrip_url, timeout=args.timeout, coordinates=args.coordinates)
     except NtripError:
         print("An error occurred")
     else:
