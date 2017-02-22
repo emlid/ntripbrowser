@@ -217,22 +217,18 @@ def get_mountpoints(url, timeout=None, coordinates=None):
     raise NtripError
 
 
-def compile_ntrip_table(table_type):
+def compile_ntrip_table(table):
     draw_table = Texttable(max_width=getScreenResolution())
-    for row in table_type:
+    for row in table:
         draw_table.add_rows([row.keys(), row.values()])
 
     return draw_table
 
 
 def display_ntrip_table(ntrip_table):
-    cas_table = ntrip_table['cas']
-    net_table = ntrip_table['net']
-    str_table = ntrip_table['str']
-
-    draw_cas = compile_ntrip_table(cas_table)
-    draw_net = compile_ntrip_table(net_table)
-    draw_str = compile_ntrip_table(str_table)
+    draw_cas = compile_ntrip_table(ntrip_table['cas'])
+    draw_net = compile_ntrip_table(ntrip_table['net'])
+    draw_str = compile_ntrip_table(ntrip_table['str'])
 
     print "CAS TABLE".center(getScreenResolution(), "="), '\n', draw_cas.draw(), 4*'\n'
     print "NET TABLE".center(getScreenResolution(), "="), '\n', draw_net.draw(), 4*'\n'
