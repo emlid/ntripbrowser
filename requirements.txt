@@ -1,2 +1,3 @@
 chardet==2.3.0
 geopy==1.11.0
+texttable==0.8.7

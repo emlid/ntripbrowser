@@ -6,7 +6,7 @@ setup(
     author='Andrew Yushkevich',
     author_email='andrew.yushkevich@emlid.com',
     packages=['ntripbrowser'],
-    install_requires=['chardet', 'geopy'],
+    install_requires=['chardet', 'geopy','texttable'],
     license = 'GPLv3',
     url='https://github.com/emlid/ntripbrowser.git',
     description='NTRIP Browser for terminal',

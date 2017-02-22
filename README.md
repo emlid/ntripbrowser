@@ -6,6 +6,7 @@ A simple Python API for browse NTRIP (Networked Transport of RTCM via Internet P
 
 `geopy`
 `chardet`
+`texttable`
 
 The package was tested with **Python 2.7**
 
