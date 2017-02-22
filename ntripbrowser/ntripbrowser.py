@@ -33,8 +33,18 @@ import urllib2
 import httplib
 import argparse
 import chardet
+import subprocess
 
 from geopy.distance import vincenty
+from texttable import Texttable
+
+
+def getScreenResolution():
+    cmd = "stty size"
+    output = subprocess.check_output(cmd, shell=True, stderr=subprocess.PIPE)
+    size = output.strip().split()
+
+    return int(size[1])
 
 
 class NtripError(Exception):
@@ -207,8 +217,26 @@ def get_mountpoints(url, timeout=None, coordinates=None):
     raise NtripError
 
 
+def compile_ntrip_table(table_type):
+    draw_table = Texttable(max_width=getScreenResolution())
+    for row in table_type:
+        draw_table.add_rows([row.keys(), row.values()])
+
+    return draw_table
+
+
 def display_ntrip_table(ntrip_table):
-    print(ntrip_table)
+    cas_table = ntrip_table['cas']
+    net_table = ntrip_table['net']
+    str_table = ntrip_table['str']
+
+    draw_cas = compile_ntrip_table(cas_table)
+    draw_net = compile_ntrip_table(net_table)
+    draw_str = compile_ntrip_table(str_table)
+
+    print "CAS TABLE".center(getScreenResolution(), "="), '\n', draw_cas.draw(), 4*'\n'
+    print "NET TABLE".center(getScreenResolution(), "="), '\n', draw_net.draw(), 4*'\n'
+    print "STR TABLE".center(getScreenResolution(), "="), '\n', draw_str.draw()
 
 
 def parse_url(cli_arguments):
