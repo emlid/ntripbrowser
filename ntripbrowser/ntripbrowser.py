@@ -34,6 +34,7 @@ import httplib
 import argparse
 import chardet
 import subprocess
+import pydoc
 
 from geopy.distance import vincenty
 from texttable import Texttable
@@ -230,9 +231,11 @@ def display_ntrip_table(ntrip_table):
     draw_net = compile_ntrip_table(ntrip_table['net'])
     draw_str = compile_ntrip_table(ntrip_table['str'])
 
-    print "CAS TABLE".center(getScreenResolution(), "="), '\n', draw_cas.draw(), 4*'\n'
-    print "NET TABLE".center(getScreenResolution(), "="), '\n', draw_net.draw(), 4*'\n'
-    print "STR TABLE".center(getScreenResolution(), "="), '\n', draw_str.draw()
+    print pydoc.pager((
+    "CAS TABLE".center(getScreenResolution(), "=") + '\n' + draw_cas.draw() + 4*'\n' +
+    "NET TABLE".center(getScreenResolution(), "=") + '\n' + draw_net.draw() + 4*'\n' +
+    "STR TABLE".center(getScreenResolution(), "=") + '\n' + draw_str.draw()
+    ))
 
 
 def parse_url(cli_arguments):
