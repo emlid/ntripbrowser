@@ -221,7 +221,8 @@ def get_mountpoints(url, timeout=None, coordinates=None):
 def compile_ntrip_table(table):
     draw_table = Texttable(max_width=getScreenResolution())
     for row in table:
-        draw_table.add_rows([row.keys(), row.values()])
+        sorted_params = [x for y, x in sorted(row.items())]
+        draw_table.add_rows([sorted(row.keys()), sorted_params])
 
     return draw_table
 
@@ -232,9 +233,9 @@ def display_ntrip_table(ntrip_table):
     draw_str = compile_ntrip_table(ntrip_table['str'])
 
     print pydoc.pager((
-    "CAS TABLE".center(getScreenResolution(), "=") + '\n' + draw_cas.draw() + 4*'\n' +
-    "NET TABLE".center(getScreenResolution(), "=") + '\n' + draw_net.draw() + 4*'\n' +
-    "STR TABLE".center(getScreenResolution(), "=") + '\n' + draw_str.draw()
+    "CAS TABLE".center(getScreenResolution(), "=") + '\n' + str(draw_cas.draw()) + 4*'\n' +
+    "NET TABLE".center(getScreenResolution(), "=") + '\n' + str(draw_net.draw()) + 4*'\n' +
+    "STR TABLE".center(getScreenResolution(), "=") + '\n' + str(draw_str.draw())
     ))
 
 
