@@ -63,4 +63,10 @@ As a result you'll get a dictionary consisting of a lists of dictionaries with s
 
 - NET stations: `"ID", "Operator", "Authentication", "Fee", "Web-Net", "Web-Str", "Web-Reg", "Other Details"`    
 
-- STR stations: `"Mountpoint", "ID", "Format", "Format-Details","Carrier", "Nav-System", "Network", "Country", "Latitude", "Longitude", "NMEA", "Solution", "Generator", "Compr-Encrp", "Authentication", "Fee", "Bitrate", "Other Details"`
+- STR stations: `"Mountpoint", "ID", "Format", "Format-Details","Carrier", "Nav-System", "Network", "Country", "Latitude", "Longitude", "NMEA", "Solution", "Generator", "Compr-Encrp", "Authentication", "Fee", "Bitrate", "Other Details"`    
+
+##Example    
+```python
+from ntripbrowser import get_mountpoints
+print get_mountpoints('http://emlid.ntrip.com:2101', 1, (0.0, 0.0))
+```
