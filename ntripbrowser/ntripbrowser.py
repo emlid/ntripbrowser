@@ -40,6 +40,19 @@ from geopy.distance import vincenty
 from texttable import Texttable
 
 
+STR_headers = ["Mountpoint", "ID", "Format", "Format-Details",
+               "Carrier", "Nav-System", "Network", "Country", "Latitude",
+               "Longitude", "NMEA", "Solution", "Generator", "Compr-Encrp",
+               "Authentication", "Fee", "Bitrate", "Other Details", "Distance"]
+
+CAS_headers = ["Host", "Port", "ID", "Operator",
+               "NMEA", "Country", "Latitude", "Longitude",
+               "FallbackHost", "FallbackPort", "Site", "Other Details"]
+
+NET_headers = ["ID", "Operator", "Authentication",
+               "Fee", "Web-Net", "Web-Str", "Web-Reg", "Other Details"]
+
+
 def getScreenResolution():
     cmd = "stty size"
     output = subprocess.check_output(cmd, shell=True, stderr=subprocess.PIPE)
@@ -114,26 +127,14 @@ def form_ntrip_entries(ntrip_tables):
 
 
 def form_str_dictionary(str_list):
-    STR_headers = ["Mountpoint", "ID", "Format", "Format-Details",
-                   "Carrier", "Nav-System", "Network", "Country", "Latitude",
-                   "Longitude", "NMEA", "Solution", "Generator", "Compr-Encrp",
-                   "Authentication", "Fee", "Bitrate", "Other Details"]
-
     return form_dictionaries(STR_headers, str_list)
 
 
 def form_cas_dictionary(cas_list):
-    CAS_headers = ["Host", "Port", "ID", "Operator",
-                   "NMEA", "Country", "Latitude", "Longitude",
-                   "FallbackHost", "FallbackPort", "Site", "Other Details"]
-
     return form_dictionaries(CAS_headers, cas_list)
 
 
 def form_net_dictionary(net_list):
-    NET_headers = ["ID", "Operator", "Authentication",
-                   "Fee", "Web-Net", "Web-Str", "Web-Reg", "Other Details"]
-
     return form_dictionaries(NET_headers, net_list)
 
 
@@ -218,24 +219,31 @@ def get_mountpoints(url, timeout=None, coordinates=None):
     raise NtripError
 
 
-def compile_ntrip_table(table):
+def compile_ntrip_table(table, header):
     draw_table = Texttable(max_width=getScreenResolution())
+    current_value = []
     for row in table:
-        sorted_params = [x for y, x in sorted(row.items())]
-        draw_table.add_rows([sorted(row.keys()), sorted_params])
+        for element in header:
+
+            current_value.append(row[element])
+            # sorted_params = [x for y, x in sorted(row.items())]
+            # draw_table.add_rows([sorted(row.keys()), sorted_params])
+        draw_table.add_rows((header, current_value))
+        current_value = []
 
     return draw_table
 
 
 def display_ntrip_table(ntrip_table):
-    draw_cas = compile_ntrip_table(ntrip_table['cas'])
-    draw_net = compile_ntrip_table(ntrip_table['net'])
-    draw_str = compile_ntrip_table(ntrip_table['str'])
+    draw_cas = compile_ntrip_table(ntrip_table['cas'], CAS_headers)
+    draw_net = compile_ntrip_table(ntrip_table['net'], NET_headers)
+    draw_str = compile_ntrip_table(ntrip_table['str'], STR_headers)
 
     print pydoc.pager((
-    "CAS TABLE".center(getScreenResolution(), "=") + '\n' + str(draw_cas.draw()) + 4*'\n' +
-    "NET TABLE".center(getScreenResolution(), "=") + '\n' + str(draw_net.draw()) + 4*'\n' +
-    "STR TABLE".center(getScreenResolution(), "=") + '\n' + str(draw_str.draw())
+        "CAS TABLE".center(getScreenResolution(), "=") + '\n' + str(draw_cas.draw()) + 4 * '\n' +
+        "NET TABLE".center(getScreenResolution(), "=") + '\n' + str(draw_net.draw()) + 4 * '\n' +
+        "STR TABLE".center(getScreenResolution(), "=") +
+        '\n' + str(draw_str.draw())
     ))
 
 
@@ -253,7 +261,8 @@ def main():
     ntrip_url = parse_url(args)
 
     try:
-        ntrip_table = get_mountpoints(ntrip_url, timeout=args.timeout, coordinates=args.coordinates)
+        ntrip_table = get_mountpoints(
+            ntrip_url, timeout=args.timeout, coordinates=args.coordinates)
     except NtripError:
         print("An error occurred")
     else:
