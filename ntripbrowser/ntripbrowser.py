@@ -39,19 +39,17 @@ import pydoc
 from geopy.distance import vincenty
 from texttable import Texttable
 
+CAS_headers = ["Host", "Port", "ID", "Operator",
+               "NMEA", "Country", "Latitude", "Longitude",
+               "FallbackHost", "FallbackPort", "Site", "Other Details", "Distance"]
+
+NET_headers = ["ID", "Operator", "Authentication",
+               "Fee", "Web-Net", "Web-Str", "Web-Reg", "Other Details", "Distance"]
 
 STR_headers = ["Mountpoint", "ID", "Format", "Format-Details",
                "Carrier", "Nav-System", "Network", "Country", "Latitude",
                "Longitude", "NMEA", "Solution", "Generator", "Compr-Encrp",
                "Authentication", "Fee", "Bitrate", "Other Details", "Distance"]
-
-CAS_headers = ["Host", "Port", "ID", "Operator",
-               "NMEA", "Country", "Latitude", "Longitude",
-               "FallbackHost", "FallbackPort", "Site", "Other Details"]
-
-NET_headers = ["ID", "Operator", "Authentication",
-               "Fee", "Web-Net", "Web-Str", "Web-Reg", "Other Details"]
-
 
 def getScreenResolution():
     cmd = "stty size"
@@ -223,11 +221,13 @@ def compile_ntrip_table(table, header):
     draw_table = Texttable(max_width=getScreenResolution())
     current_value = []
     for row in table:
+        print row
         for element in header:
-
-            current_value.append(row[element])
-            # sorted_params = [x for y, x in sorted(row.items())]
-            # draw_table.add_rows([sorted(row.keys()), sorted_params])
+            print element
+            try:
+                current_value.append(row[element])
+            except KeyError:
+                current_value.append("None")
         draw_table.add_rows((header, current_value))
         current_value = []
 
@@ -242,8 +242,7 @@ def display_ntrip_table(ntrip_table):
     print pydoc.pager((
         "CAS TABLE".center(getScreenResolution(), "=") + '\n' + str(draw_cas.draw()) + 4 * '\n' +
         "NET TABLE".center(getScreenResolution(), "=") + '\n' + str(draw_net.draw()) + 4 * '\n' +
-        "STR TABLE".center(getScreenResolution(), "=") +
-        '\n' + str(draw_str.draw())
+        "STR TABLE".center(getScreenResolution(), "=") + '\n' + str(draw_str.draw())
     ))
 
 
