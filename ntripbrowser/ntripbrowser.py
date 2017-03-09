@@ -60,7 +60,7 @@ def getScreenResolution():
 
 
 class NtripError(Exception):
-    pass
+    passadd program to pip
 
 
 def argparser():
