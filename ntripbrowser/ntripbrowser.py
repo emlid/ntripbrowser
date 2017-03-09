@@ -221,9 +221,7 @@ def compile_ntrip_table(table, header):
     draw_table = Texttable(max_width=getScreenResolution())
     current_value = []
     for row in table:
-        print row
         for element in header:
-            print element
             try:
                 current_value.append(row[element])
             except KeyError:
