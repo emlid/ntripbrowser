@@ -59,11 +59,11 @@ get_mountpoints(url, timeout=None, coordinates=None)
 
 As a result you'll get a dictionary consisting of a lists of dictionaries with such structure:
 
-- CAS stations: `"Host", "Port", "ID", "Operator", "NMEA", "Country", "Latitude", "Longitude", "FallbackHost", "FallbackPort", "Site", "Other Details"` 
+- CAS stations: `"Host", "Port", "ID", "Operator", "NMEA", "Country", "Latitude", "Longitude", "FallbackHost", "FallbackPort", "Site", "Other Details", "Distance"` 
 
-- NET stations: `"ID", "Operator", "Authentication", "Fee", "Web-Net", "Web-Str", "Web-Reg", "Other Details"`    
+- NET stations: `"ID", "Operator", "Authentication", "Fee", "Web-Net", "Web-Str", "Web-Reg", "Other Details", "Distance"`    
 
-- STR stations: `"Mountpoint", "ID", "Format", "Format-Details","Carrier", "Nav-System", "Network", "Country", "Latitude", "Longitude", "NMEA", "Solution", "Generator", "Compr-Encrp", "Authentication", "Fee", "Bitrate", "Other Details"`    
+- STR stations: `"Mountpoint", "ID", "Format", "Format-Details","Carrier", "Nav-System", "Network", "Country", "Latitude", "Longitude", "NMEA", "Solution", "Generator", "Compr-Encrp", "Authentication", "Fee", "Bitrate", "Other Details", "Distance"`    
 
 ##Example    
 ```python
