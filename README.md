@@ -36,7 +36,7 @@ optional arguments:
 ```python
 get_mountpoints(url, timeout=None, coordinates=None)
 ```
-####Arguments:
+#### Arguments:
 
  - `url`    
  
@@ -44,7 +44,7 @@ get_mountpoints(url, timeout=None, coordinates=None)
 > Standard port is 2101, use `:port` after `url` to set another one.    
 > Example: *http://192.168.1.0:2101* or  *http://ntrip.emlid.com:2101*.
 
-####Optional arguments:
+#### Optional arguments:
 
  - `timeout`    
  
@@ -55,7 +55,7 @@ get_mountpoints(url, timeout=None, coordinates=None)
 > Use `coordinates` to pass your position coordinates in function and get distance to NTRIP station.    
 > Form of coordiantes must be `(x, y)` or `(x.x, y.y)` of latitude, longitude.
 
-####Result
+#### Result
 
 As a result you'll get a dictionary consisting of a lists of dictionaries with such structure:
 
@@ -65,7 +65,7 @@ As a result you'll get a dictionary consisting of a lists of dictionaries with s
 
 - STR stations: `"Mountpoint", "ID", "Format", "Format-Details","Carrier", "Nav-System", "Network", "Country", "Latitude", "Longitude", "NMEA", "Solution", "Generator", "Compr-Encrp", "Authentication", "Fee", "Bitrate", "Other Details", "Distance"`    
 
-##Example    
+## Example    
 ```python
 from ntripbrowser import get_mountpoints
 print get_mountpoints('http://emlid.ntrip.com:2101', 1, (0.0, 0.0))
