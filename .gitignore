@@ -1,5 +1,7 @@
 *.pyc
-MANIFEST
 dist/
 build/
 *.egg-info/
+*.tox
+*.pytest*
+*.idea
