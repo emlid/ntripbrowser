@@ -1,14 +1,13 @@
 # NTRIP Browser
 
-A simple Python API for browse NTRIP (Networked Transport of RTCM via Internet Protocol).  
+A Python API for browsing NTRIP (Networked Transport of RTCM via Internet Protocol).
 
-## Dependencies
-
-`geopy`
-`chardet`
-`texttable`
-
-The package was tested with **Python 2.7**
+## Requirements
+ - geopy
+ - pycurl
+ - chardet
+ - texttable
+ - Python 2.6–2.7 & 3.4–3.6
 
 ## Installation
 
@@ -19,10 +18,10 @@ The package was tested with **Python 2.7**
 ## Usage 
 
 ```
-ntripbrowser [-h] [-p] [-t] [-c] url  
+ntripbrowser [-h] [-p] [-t] [-c] host
 
 positional arguments:  
-  url                   NTRIP source table address
+  host                  NTRIP source table host address
 
 optional arguments:  
   -h, --help            Show this help message and exit  
@@ -31,26 +30,37 @@ optional arguments:
   -c, --coordinates     Add NTRIP station distance to this coordinate
  ```
 
+#### CLI workflow example:
+
+    ntripbrowser cddis-caster.gsfc.nasa.gov -p 443 -t 5 -c 1.0 2.0
+
 ## Package API
+#### Workflow example:
 
 ```python
-get_mountpoints(url, timeout=None, coordinates=None)
+browser = NtripBrowser(host, port=2101, timeout=None, coordinates=None)
+browser.get_mountpoints()
+browser.host = another_host
+browser.get_mountpoints()
 ```
+
 #### Arguments:
 
- - `url`    
- 
-> Use `url` only with *http://* to pass url variable in function.       
-> Standard port is 2101, use `:port` after `url` to set another one.    
-> Example: *http://192.168.1.0:2101* or  *http://ntrip.emlid.com:2101*.
+ - `host`
+
+> NTRIP caster host.
+> Standard port is 2101, use `:port` optional argument to set another one.
 
 #### Optional arguments:
 
+ - `port`
+
+> NTRIP caster port.
+
  - `timeout`    
  
-> Use `timeout` to pass timeout in function. It must be integer.    
-
- - `coordinates`    
+> Use `timeout` to define, how long to wait for a connection to NTRIP caster.
+ - `coordinates`
  
 > Use `coordinates` to pass your position coordinates in function and get distance to NTRIP station.    
 > Form of coordiantes must be `(x, y)` or `(x.x, y.y)` of latitude, longitude.
@@ -63,10 +73,25 @@ As a result you'll get a dictionary consisting of a lists of dictionaries with s
 
 - NET stations: `"ID", "Operator", "Authentication", "Fee", "Web-Net", "Web-Str", "Web-Reg", "Other Details", "Distance"`    
 
-- STR stations: `"Mountpoint", "ID", "Format", "Format-Details","Carrier", "Nav-System", "Network", "Country", "Latitude", "Longitude", "NMEA", "Solution", "Generator", "Compr-Encrp", "Authentication", "Fee", "Bitrate", "Other Details", "Distance"`    
+- STR stations: `"Mountpoint", "ID", "Format", "Format-Details","Carrier", "Nav-System", "Network", "Country", "Latitude", "Longitude", "NMEA", "Solution", "Generator", "Compr-Encryp", "Authentication", "Fee", "Bitrate", "Other Details", "Distance"`
 
-## Example    
-```python
-from ntripbrowser import get_mountpoints
-print get_mountpoints('http://emlid.ntrip.com:2101', 1, (0.0, 0.0))
-```
+#### Exceptions
+
+ - `ntripbrowser.NtripbrowserError` - base class for all ntripbrowser exceptions.
+ - `ntripbrowser.UnableToConnect` - raised when ntripbrowser could not connect to the assigned url.
+ - `ntripbrowser.NoDataReceivedFromCaster` - raised when ntripbrowser could not find any data on the page.
+ - `ntripbrowser.ExceededTimeoutError` - raised when connection timeout is exceeded.
+ - `ntripbrowser.HandshakeFiledError` - raised when connection handshake is failed.
+
+## To test
+
+    make test
+
+#### Known Issues
+Tests with `tox` may fail if python*-dev is not installed.
+So, you need to install python2.7-dev and python3.6-dev:
+
+    sudo apt-get install python2.7-dev
+    sudo apt-get install python3.6-dev
+
+
