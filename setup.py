@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='ntripbrowser',
-    version='1.1.1',
+    version='2.0.0',
     author='Andrew Yushkevich',
     author_email='andrew.yushkevich@emlid.com',
     packages=['ntripbrowser'],
