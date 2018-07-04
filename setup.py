@@ -1,4 +1,17 @@
+import os
+import sys
 from setuptools import setup
+
+
+MAC_OS_ENVIRONMENT_VARIABLES = {
+    'LDFLAGS': '-L/usr/local/opt/openssl/lib',
+    'CPPFLAGS': '-I/usr/local/opt/openssl/include',
+    'PKG_CONFIG_PATH': '/usr/local/opt/openssl/lib/pkgconfig',
+    'PYCURL_SSL_LIBRARY': 'openssl',
+}
+
+if sys.platform.startswith('darwin'):
+    os.environ.update(MAC_OS_ENVIRONMENT_VARIABLES)
 
 setup(
     name='ntripbrowser',
