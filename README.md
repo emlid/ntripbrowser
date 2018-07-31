@@ -1,8 +1,9 @@
-# NTRIP Browser
+# NTRIP Browser [![Build Status](https://travis-ci.com/emlid/ntripbrowser.svg?branch=master)](https://travis-ci.com/emlid/ntripbrowser)
 
 A Python API for browsing NTRIP (Networked Transport of RTCM via Internet Protocol).
 
 ## Requirements
+ - pager
  - geopy
  - pycurl
  - chardet
@@ -11,10 +12,20 @@ A Python API for browsing NTRIP (Networked Transport of RTCM via Internet Protoc
 
 ## Installation
 
+ - make sure that you have `libcurl` installed
+
  - `pip install ntripbrowser`
 
  -  or clone and run `make install`
 
+#### libcurl installation hints
+
+ - installation via `apt`:
+ 
+    ```
+       apt-get install libssl-dev libcurl4-openssl-dev python-dev
+    ```
+    
 ## Usage 
 
 ```
@@ -38,7 +49,7 @@ optional arguments:
 #### Workflow example:
 
 ```python
-browser = NtripBrowser(host, port=2101, timeout=None, coordinates=None)
+browser = NtripBrowser(host, port=2101, timeout=5, coordinates=None)
 browser.get_mountpoints()
 browser.host = another_host
 browser.get_mountpoints()
