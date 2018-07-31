@@ -1,7 +1,0 @@
-chardet==3.0.4
-geopy==1.14.0
-pager==3.3
-pycurl==7.43.0.1
-texttable==1.2.1
-tox==3.0.0
-mock==2.0.0
