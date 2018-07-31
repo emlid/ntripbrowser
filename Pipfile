@@ -1,0 +1,21 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+scandir = "*"
+pathlib2 = "*"
+pytest = "*"
+pylint = "==1.9.3"
+"flake8" = "*"
+mock = "*"
+tox = "==3.0.0"
+
+[packages]
+chardet = "==3.0.4"
+geopy = "==1.14.0"
+pager = "==3.3"
+pycurl = "==7.43.0.1"
+texttable = "==1.2.1"
+cachecontrol = ">=0.12.4"
