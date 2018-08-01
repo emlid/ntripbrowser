@@ -29,10 +29,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import pycurl
-import chardet
 import logging
 from geopy.distance import geodesic
+
+import chardet
+import pycurl
 
 try:
     from io import BytesIO  # Python 3
@@ -51,6 +52,7 @@ logger = logging.getLogger(__name__)
 
 class NtripBrowser(object):
     def __init__(self, host, port=2101, timeout=4, coordinates=None):
+        self._host = None
         self.host = host
         self.port = port
         self.timeout = timeout
@@ -76,12 +78,12 @@ class NtripBrowser(object):
 
     def get_mountpoints(self):
         for url in self.urls:
-            logger.debug('Trying to read NTRIP data from{}'.format(url))
+            logger.debug('Trying to read NTRIP data from %s', url)
             raw_data = self._read_data(url)
             try:
                 return self._process_raw_data(raw_data)
             except NoDataFoundOnPage:
-                logger.info('No data found on the {}'.format(url))
+                logger.info('No data found on the %s', url)
 
         raise NoDataReceivedFromCaster()
 
@@ -100,14 +102,15 @@ class NtripBrowser(object):
         try:
             curl.perform()
         except pycurl.error as error:
-            errno, errstr = error.args
+            errno = error.args[0]
+            errstr = error.args[1]
             if errno in (PYCURL_COULD_NOT_RESOLVE_HOST_ERRNO, PYCURL_CONNECTION_FAILED_ERRNO):
                 raise UnableToConnect(errstr)
             if errno == PYCURL_TIMEOUT_ERRNO:
                 raise ExceededTimeoutError(errstr)
             if errno == PYCURL_HANDSHAKE_ERRNO:
                 raise HandshakeFiledError()
-            logger.error('pycurl.error({}) while reading data from url: {}'.format(errno, errstr))
+            logger.error('pycurl.error(%s) while reading data from url: %s', errno, errstr)
         curl.close()
 
     def _process_raw_data(self, raw_data):
