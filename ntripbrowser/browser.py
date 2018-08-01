@@ -1,6 +1,6 @@
+import argparse
 import pydoc
 import pager
-import argparse
 
 from texttable import Texttable
 
@@ -31,9 +31,9 @@ def display_ntrip_table(ntrip_table):
     table_str = compile_ntrip_table(ntrip_table['str'], STR_HEADERS)
 
     pydoc.pager((
-            'CAS TABLE'.center(SCREEN_WIDTH, '=') + '\n' + table_cas + 4 * '\n' +
-            'NET TABLE'.center(SCREEN_WIDTH, '=') + '\n' + table_net + 4 * '\n' +
-            'STR TABLE'.center(SCREEN_WIDTH, '=') + '\n' + table_str
+        'CAS TABLE'.center(SCREEN_WIDTH, '=') + '\n' + table_cas + 4 * '\n' +
+        'NET TABLE'.center(SCREEN_WIDTH, '=') + '\n' + table_net + 4 * '\n' +
+        'STR TABLE'.center(SCREEN_WIDTH, '=') + '\n' + table_str
     ))
 
 
