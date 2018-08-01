@@ -1,0 +1,18 @@
+language: python
+cache: pip
+python:
+- '2.7'
+- '3.6'
+install:
+- make init;
+script:
+- make install;
+- make test;
+
+jobs:
+  include:
+    - stage: style-check
+    python: 3.6
+    script:
+      - make style-check
+      - make lint
