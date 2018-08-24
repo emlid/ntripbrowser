@@ -12,7 +12,7 @@ script:
 jobs:
   include:
     - stage: style-check
-    python: 3.6
-    script:
-      - make style-check
-      - make lint
+      python: 3.6
+      script:
+        - make style-check
+        - make lint
