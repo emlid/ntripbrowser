@@ -21,6 +21,9 @@ def argparser():
                         help='add timeout', default=4)
     parser.add_argument('-c', '--coordinates',
                         help='Add NTRIP station distance to this coordinate', nargs=2)
+    parser.add_argument('-M', '--maxdist',
+                        help='Only report stations less than this number of km away from given coordinate',
+                        type=float)
 
     return parser.parse_args()
 
@@ -62,7 +65,13 @@ def table_to_string(table):
 
 def main():
     args = argparser()
-    browser = NtripBrowser(args.url, port=args.port, timeout=args.timeout, coordinates=args.coordinates)
+    browser = NtripBrowser(
+        args.url,
+        port=args.port,
+        timeout=args.timeout,
+        coordinates=args.coordinates,
+        maxdist=args.maxdist
+    )
     try:
         ntrip_table = browser.get_mountpoints()
     except ExceededTimeoutError:
