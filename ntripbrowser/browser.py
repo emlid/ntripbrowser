@@ -21,14 +21,16 @@ def argparser():
                         help='add timeout', default=4)
     parser.add_argument('-c', '--coordinates',
                         help='Add NTRIP station distance to this coordinate', nargs=2)
+    parser.add_argument('-M', '--maxdist',
+                        help='Only report stations less than this number of km away from given coordinate', type=float, default=-1)
 
     return parser.parse_args()
 
 
-def display_ntrip_table(ntrip_table):
-    table_cas = compile_ntrip_table(ntrip_table['cas'], CAS_HEADERS)
-    table_net = compile_ntrip_table(ntrip_table['net'], NET_HEADERS)
-    table_str = compile_ntrip_table(ntrip_table['str'], STR_HEADERS)
+def display_ntrip_table(ntrip_table, maxdist=-1):
+    table_cas = compile_ntrip_table(ntrip_table['cas'], CAS_HEADERS, maxdist=maxdist)
+    table_net = compile_ntrip_table(ntrip_table['net'], NET_HEADERS, maxdist=maxdist)
+    table_str = compile_ntrip_table(ntrip_table['str'], STR_HEADERS, maxdist=maxdist)
 
     pydoc.pager((
         'CAS TABLE'.center(SCREEN_WIDTH, '=') + '\n' + table_cas + 4 * '\n' +
@@ -37,9 +39,15 @@ def display_ntrip_table(ntrip_table):
     ))
 
 
-def compile_ntrip_table(table, headers):
+def compile_ntrip_table(table, headers, maxdist=-1):
     table_to_draw = Texttable(max_width=SCREEN_WIDTH)
+    # sort by distance, closest first
+    table.sort(key=lambda row : row['Distance'])
+
     for row in table:
+        # allow for filtering by maximum distance
+        if maxdist > 0 and row['Distance'] > maxdist:
+            continue
         row_to_draw = []
         for header in headers:
             try:
@@ -74,4 +82,4 @@ def main():
     except HandshakeFiledError:
         print('Unable to connect to NTRIP caster, handshake error')
     else:
-        display_ntrip_table(ntrip_table)
+        display_ntrip_table(ntrip_table, maxdist=args.maxdist)
