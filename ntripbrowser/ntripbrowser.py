@@ -51,12 +51,14 @@ logger = logging.getLogger(__name__)
 
 
 class NtripBrowser(object):
-    def __init__(self, host, port=2101, timeout=4, coordinates=None):
+    def __init__(self, host, port=2101, timeout=4,  # pylint: disable-msg=too-many-arguments
+                 coordinates=None, maxdist=None):
         self._host = None
         self.host = host
         self.port = port
         self.timeout = timeout
         self.coordinates = coordinates
+        self.maxdist = maxdist
 
     @property
     def host(self):
@@ -117,7 +119,8 @@ class NtripBrowser(object):
         decoded_raw_ntrip = self._decode_data(raw_data)
         ntrip_tables = self._get_ntrip_tables(decoded_raw_ntrip)
         ntrip_dictionary = self._form_ntrip_entries(ntrip_tables)
-        return self._add_distance(ntrip_dictionary)
+        ntrip_dictionary = self._add_distance(ntrip_dictionary)
+        return self._trim_outlying(ntrip_dictionary)
 
     @staticmethod
     def _decode_data(data):
@@ -183,3 +186,19 @@ class NtripBrowser(object):
         if self.coordinates:
             return geodesic(obs_point, self.coordinates).kilometers
         return None
+
+    def _trim_outlying(self, ntrip_dictionary):
+        if (self.maxdist is not None) and (self.coordinates is not None):
+            return {
+                'cas': self._trim_outlying_casters(ntrip_dictionary.get('cas')),
+                'net': self._trim_outlying_casters(ntrip_dictionary.get('net')),
+                'str': self._trim_outlying_casters(ntrip_dictionary.get('str'))
+            }
+        return ntrip_dictionary
+
+    def _trim_outlying_casters(self, ntrip_type_dictionary):
+        def by_distance(row):
+            return row['Distance'] < self.maxdist
+        inlying_casters = list(filter(by_distance, ntrip_type_dictionary))
+        inlying_casters.sort(key=lambda row: row['Distance'])
+        return inlying_casters
