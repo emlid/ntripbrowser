@@ -113,7 +113,8 @@ class NtripBrowser(object):
             if errno == PYCURL_HANDSHAKE_ERRNO:
                 raise HandshakeFiledError()
             logger.error('pycurl.error(%s) while reading data from url: %s', errno, errstr)
-        curl.close()
+        finally:
+            curl.close()
 
     def _process_raw_data(self, raw_data):
         decoded_raw_ntrip = self._decode_data(raw_data)
