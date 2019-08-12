@@ -129,9 +129,10 @@ class NtripBrowser(object):
         return data.decode('utf8' if not data_encoding else data_encoding)
 
     def _get_ntrip_tables(self, data):
-        if 'ENDSOURCETABLE' in data:
-            return self._extract_ntrip_entry_strings(data)
-        raise NoDataFoundOnPage()
+        ntrip_tables = self._extract_ntrip_entry_strings(data)
+        if not any(ntrip_tables):
+            raise NoDataFoundOnPage()
+        return ntrip_tables
 
     @staticmethod
     def _extract_ntrip_entry_strings(raw_table):
