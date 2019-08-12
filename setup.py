@@ -2,9 +2,9 @@ from setuptools import setup
 
 setup(
     name='ntripbrowser',
-    version='2.0.3',
-    author='Andrew Yushkevich',
-    author_email='andrew.yushkevich@emlid.com',
+    version='2.1.0',
+    author='Andrew Yushkevich, Alexander Yashin',
+    author_email='andrew.yushkevich@emlid.com, alexandr.yashin@emlid.com',
     packages=['ntripbrowser'],
     install_requires=['chardet', 'geopy>=1.14', 'texttable', 'pager', 'pycurl', 'cachecontrol>=0.12.4'],
     tests_requires=['pytest', 'mock', 'tox'],
