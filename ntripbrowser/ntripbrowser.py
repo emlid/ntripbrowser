@@ -32,8 +32,8 @@
 import logging
 from geopy.distance import geodesic
 
-import chardet
 import pycurl
+import cchardet
 
 try:
     from io import BytesIO  # Python 3
@@ -125,7 +125,7 @@ class NtripBrowser(object):
 
     @staticmethod
     def _decode_data(data):
-        data_encoding = chardet.detect(data)['encoding']
+        data_encoding = cchardet.detect(data)['encoding']
         return data.decode('utf8' if not data_encoding else data_encoding)
 
     def _get_ntrip_tables(self, data):
