@@ -6,7 +6,7 @@ A Python API for browsing NTRIP (Networked Transport of RTCM via Internet Protoc
  - pager
  - geopy
  - pycurl
- - chardet
+ - cchardet
  - texttable
  - Python 2.6–2.7 & 3.4–3.6
 
@@ -39,17 +39,19 @@ optional arguments:
   -p, --port            Set url port. Standard port is 2101  
   -t, --timeout         Add timeout  
   -c, --coordinates     Add NTRIP station distance to this coordinate
+  -M  --maxdist         Only report stations less than this number of km away
+                        from given coordinate
  ```
 
 #### CLI workflow example:
 
-    ntripbrowser cddis-caster.gsfc.nasa.gov -p 443 -t 5 -c 1.0 2.0
+    ntripbrowser cddis-caster.gsfc.nasa.gov -p 443 -t 5 -c 1.0 2.0 -M 4000
 
 ## Package API
 #### Workflow example:
 
 ```python
-browser = NtripBrowser(host, port=2101, timeout=5, coordinates=None)
+browser = NtripBrowser(host, port=2101, timeout=5)
 browser.get_mountpoints()
 browser.host = another_host
 browser.get_mountpoints()
@@ -76,6 +78,9 @@ browser.get_mountpoints()
 > Use `coordinates` to pass your position coordinates in function and get distance to NTRIP station.    
 > Form of coordiantes must be `(x, y)` or `(x.x, y.y)` of latitude, longitude.
 
+ - `maxdist`
+> Use `maxdist` to only report stations less than this number of km away from given coordinate.
+
 #### Result
 
 As a result you'll get a dictionary consisting of a lists of dictionaries with such structure:
@@ -92,7 +97,6 @@ As a result you'll get a dictionary consisting of a lists of dictionaries with s
  - `ntripbrowser.UnableToConnect` - raised when ntripbrowser could not connect to the assigned url.
  - `ntripbrowser.NoDataReceivedFromCaster` - raised when ntripbrowser could not find any data on the page.
  - `ntripbrowser.ExceededTimeoutError` - raised when connection timeout is exceeded.
- - `ntripbrowser.HandshakeFiledError` - raised when connection handshake is failed.
 
 ## To test
 
