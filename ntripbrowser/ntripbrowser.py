@@ -41,13 +41,128 @@ except ImportError:
     from StringIO import StringIO as BytesIO  # Python 2
 
 from .constants import (CAS_HEADERS, STR_HEADERS, NET_HEADERS, PYCURL_TIMEOUT_ERRNO,
-                        PYCURL_COULD_NOT_RESOLVE_HOST_ERRNO, PYCURL_CONNECTION_FAILED_ERRNO,
-                        PYCURL_HANDSHAKE_ERRNO)
-from .exceptions import (ExceededTimeoutError, UnableToConnect, NoDataFoundOnPage,
-                         NoDataReceivedFromCaster, HandshakeFiledError)
+                        MULTICURL_SELECT_TIMEOUT)
+from .exceptions import (ExceededTimeoutError, UnableToConnect, NoDataReceivedFromCaster)
 
 
 logger = logging.getLogger(__name__)
+
+
+class DataFetcher(object):
+    """Fetch data from specified urls, execute custom callback on results.
+
+    Parameters
+    ----------
+    urls : [str, str, ...]
+        URL's to fetch data from.
+    timeout : int
+    parser_method : callable
+        Custom callback to be executed on fetched from url's results.
+
+    Attributes
+    ----------
+    urls_processed : [str, str, ...]
+        URL's which are processed and on which no valid data was found.
+
+    result :
+        Return value of `parser_method` function or None.
+    """
+    def __init__(self, urls, timeout, parser_method):
+        self.timeout = timeout
+        self.urls = urls
+        self._parser_method = parser_method
+        self.urls_processed = []
+        self.results = None
+        self._multicurl = None
+        self._buffers = {}
+        self._curls_failed = []
+
+    @property
+    def curls(self):
+        return self._buffers.keys()
+
+    @property
+    def _result_found(self):
+        return bool(self.results)
+
+    def setup(self):
+        self.urls_processed = []
+        self.results = None
+        self._multicurl = pycurl.CurlMulti()
+        self._buffers = {}
+        self._curls_failed = []
+        self._initialize()
+        logger.info('DataFetcher: curls setup in process')
+        for curl in self.curls:
+            self._multicurl.add_handle(curl)
+
+    def _initialize(self):
+        for url in self.urls:
+            logger.debug('DataFetcher: Buffered curl creation for url "%s" in process', url)
+            buffer = BytesIO()
+            curl = pycurl.Curl()
+            curl.setopt(pycurl.URL, url)
+            curl.setopt(pycurl.TIMEOUT, self.timeout)
+            curl.setopt(pycurl.CONNECTTIMEOUT, self.timeout)
+            curl.setopt(pycurl.WRITEFUNCTION, buffer.write)
+            curl.setopt(pycurl.WRITEDATA, buffer)
+            self._buffers.update({curl: buffer})
+
+    def read_data(self):
+        while not self._result_found:
+            ret, num_handles = self._multicurl.perform()
+            if ret != pycurl.E_CALL_MULTI_PERFORM:
+                break
+
+        while num_handles:
+            self._multicurl.select(MULTICURL_SELECT_TIMEOUT)
+            while not self._result_found:
+                ret, num_handles = self._multicurl.perform()
+                self._read_multicurl_info()
+                if self._result_found:
+                    return
+                if ret != pycurl.E_CALL_MULTI_PERFORM:
+                    break
+        self._process_result_not_found()
+
+    def _read_multicurl_info(self):
+        _, successful_curls, failed_curls = self._multicurl.info_read()
+        self._curls_failed.extend(failed_curls)
+        for curl in successful_curls:
+            self._process_successful_curl(curl)
+            if self._result_found:
+                return
+
+    def _process_successful_curl(self, curl):
+        curl_results = self._buffers[curl].getvalue()
+        url_processed = curl.getinfo(pycurl.EFFECTIVE_URL)
+        self.urls_processed.append(url_processed)
+        logger.info('DataFetcher: Trying to parse curl response from "%s"', url_processed)
+        try:
+            self.results = self._parser_method(curl_results)
+            logger.info('DataFetcher: Results from "%s" is processed successfully', url_processed)
+        except NoDataReceivedFromCaster:
+            self.results = None
+            logger.info('DataFetcher: No valid data found in curl response from "%s"', url_processed)
+
+    def _process_result_not_found(self):
+        logger.info('DataFetcher: No valid result is received')
+        if len(self.urls_processed) == len(self.urls):
+            raise NoDataReceivedFromCaster()
+        _, error_code, error_text = self._curls_failed[0]
+        exception = PYCURL_ERRORS.get(error_code)
+        if exception:
+            raise exception(error_text)
+        raise NoDataReceivedFromCaster()
+
+    def teardown(self):
+        for curl in self.curls:
+            self._multicurl.remove_handle(curl)
+        self._multicurl.close()
+        for curl in self.curls:
+            curl.close()
+        logger.info('DataFetcher: Curls are closed succesfully')
+        self._buffers = {}
 
 
 class NtripBrowser(object):
@@ -59,6 +174,7 @@ class NtripBrowser(object):
         self.timeout = timeout
         self.coordinates = coordinates
         self.maxdist = maxdist
+        self._fetcher = DataFetcher(self.urls, self.timeout, self._process_raw_data)
 
     @property
     def host(self):
@@ -79,42 +195,10 @@ class NtripBrowser(object):
         return [http_url, http_sourcetable_url, https_url, https_sourcetable_url]
 
     def get_mountpoints(self):
-        for url in self.urls:
-            logger.debug('Trying to read NTRIP data from %s', url)
-            raw_data = self._read_data(url)
-            try:
-                return self._process_raw_data(raw_data)
-            except NoDataFoundOnPage:
-                logger.info('No data found on the %s', url)
-
-        raise NoDataReceivedFromCaster()
-
-    def _read_data(self, url):
-        buffer = BytesIO()
-        curl = pycurl.Curl()
-        curl.setopt(pycurl.URL, url)
-        curl.setopt(pycurl.TIMEOUT, self.timeout)
-        curl.setopt(pycurl.CONNECTTIMEOUT, self.timeout)
-        curl.setopt(pycurl.WRITEDATA, buffer)
-        self._perform_data_reading(curl)
-        return buffer.getvalue()
-
-    @staticmethod
-    def _perform_data_reading(curl):
-        try:
-            curl.perform()
-        except pycurl.error as error:
-            errno = error.args[0]
-            errstr = error.args[1]
-            if errno in (PYCURL_COULD_NOT_RESOLVE_HOST_ERRNO, PYCURL_CONNECTION_FAILED_ERRNO):
-                raise UnableToConnect(errstr)
-            if errno == PYCURL_TIMEOUT_ERRNO:
-                raise ExceededTimeoutError(errstr)
-            if errno == PYCURL_HANDSHAKE_ERRNO:
-                raise HandshakeFiledError()
-            logger.error('pycurl.error(%s) while reading data from url: %s', errno, errstr)
-        finally:
-            curl.close()
+        self._fetcher.setup()
+        self._fetcher.read_data()
+        self._fetcher.teardown()
+        return self._fetcher.results
 
     def _process_raw_data(self, raw_data):
         decoded_raw_ntrip = self._decode_data(raw_data)
@@ -131,7 +215,7 @@ class NtripBrowser(object):
     def _get_ntrip_tables(self, data):
         ntrip_tables = self._extract_ntrip_entry_strings(data)
         if not any(ntrip_tables):
-            raise NoDataFoundOnPage()
+            raise NoDataReceivedFromCaster()
         return ntrip_tables
 
     @staticmethod
