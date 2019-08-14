@@ -1,9 +1,8 @@
 import pytest
-from mock import patch
 from collections import namedtuple
 
 from ntripbrowser import (NtripBrowser, UnableToConnect, ExceededTimeoutError,
-                          NoDataReceivedFromCaster, HandshakeFiledError)
+                          NoDataReceivedFromCaster)
 import testing_content
 
 
@@ -22,7 +21,7 @@ def run_caster_test(caster):
     browser = NtripBrowser(caster.url, caster.port)
     try:
         browser.get_mountpoints()
-    except (UnableToConnect, ExceededTimeoutError, HandshakeFiledError):
+    except (UnableToConnect, ExceededTimeoutError):
         pass
 
 
@@ -81,17 +80,15 @@ def test_reassign_parameters():
            ] == browser.urls
 
 
-@patch.object(NtripBrowser, '_read_data', lambda self, url: b'<Some invalid NTRIP data>')
 def test_invalid_data():
     browser = NtripBrowser('example', 1234)
     with pytest.raises(NoDataReceivedFromCaster):
-        browser.get_mountpoints()
+        browser._process_raw_data(b'<Some invalid NTRIP data>')
 
 
-@patch.object(NtripBrowser, '_read_data', lambda self, url: testing_content.VALID_NET_NTRIP)
 def test_valid_net_data():
     browser = NtripBrowser('test', 1234)
-    assert browser.get_mountpoints() == {
+    assert browser._process_raw_data(testing_content.VALID_NET_NTRIP) == {
         'cas': [],
         'net': [
             {
@@ -110,10 +107,9 @@ def test_valid_net_data():
     }
 
 
-@patch.object(NtripBrowser, '_read_data', lambda self, url: testing_content.VALID_STR_NTRIP)
 def test_valid_str_data():
     browser = NtripBrowser('test', 1234)
-    assert browser.get_mountpoints() == {
+    assert browser._process_raw_data(testing_content.VALID_STR_NTRIP) == {
         'cas': [],
         'net': [],
         'str': [
@@ -132,10 +128,9 @@ def test_valid_str_data():
     }
 
 
-@patch.object(NtripBrowser, '_read_data', lambda self, url: testing_content.VALID_CAS_NTRIP)
 def test_valid_cas_data():
     browser = NtripBrowser('test', 1234)
-    assert browser.get_mountpoints() == {
+    assert browser._process_raw_data(testing_content.VALID_CAS_NTRIP) == {
         'cas': [
             {
                 'Country': 'Null',
@@ -157,10 +152,9 @@ def test_valid_cas_data():
     }
 
 
-@patch.object(NtripBrowser, '_read_data', lambda self, url: testing_content.VALID_NTRIP)
 def test_valid_data():
     browser = NtripBrowser('test', 1234)
-    assert browser.get_mountpoints() == {
+    assert browser._process_raw_data(testing_content.VALID_NTRIP) == {
         'cas': [
             {
                 'Country': 'Null',
@@ -206,10 +200,9 @@ def test_valid_data():
     }
 
 
-@patch.object(NtripBrowser, '_read_data', lambda self, url: testing_content.VALID_NTRIP)
 def test_add_coordinates():
     browser = NtripBrowser('test', 1234, coordinates=(1.0, 2.0))
-    assert browser.get_mountpoints() == {
+    assert browser._process_raw_data(testing_content.VALID_NTRIP) == {
         'cas': [
             {
                 'Country': 'Null',
