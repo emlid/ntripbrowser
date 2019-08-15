@@ -5,7 +5,7 @@ import pager
 from texttable import Texttable
 
 from ntripbrowser import NtripBrowser
-from ntripbrowser import ExceededTimeoutError, UnableToConnect, NoDataReceivedFromCaster, HandshakeFailedError
+from ntripbrowser import ExceededTimeoutError, UnableToConnect, NoDataReceivedFromCaster
 from ntripbrowser import CAS_HEADERS, STR_HEADERS, NET_HEADERS
 
 
@@ -80,7 +80,5 @@ def main():
         print('Unable to connect to NTRIP caster')
     except NoDataReceivedFromCaster:
         print('No data received from NTRIP caster')
-    except HandshakeFailedError:
-        print('Unable to connect to NTRIP caster, handshake error')
     else:
         display_ntrip_table(ntrip_table)
