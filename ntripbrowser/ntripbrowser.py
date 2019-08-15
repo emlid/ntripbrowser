@@ -123,7 +123,7 @@ class DataFetcher(object):
                     return
                 if ret != pycurl.E_CALL_MULTI_PERFORM:
                     break
-        self._process_result_not_found()
+        self._process_fetch_failure()
 
     def _read_multicurl_info(self):
         _, successful_curls, failed_curls = self._multicurl.info_read()
@@ -145,14 +145,24 @@ class DataFetcher(object):
             self.results = None
             logger.info('DataFetcher: No valid data found in curl response from "%s"', url_processed)
 
-    def _process_result_not_found(self):
+    def _process_fetch_failure(self):
+        """- If the number of processed URL's is equal to the number of URL's
+        which are requested to poll, this means that no data received from casters.
+        - If in failed curls list timeout error exist, use it as a fail reason.
+        - If no curls with exceeded timeout are found, throw UnableToConnect
+        with first failed curl reason.
+        - Otherwise, there are no failed curls and all curls which are succeeds
+        received no data from the caster, so throw a NoDataReceivedFromCaster.
+        """
         logger.info('DataFetcher: No valid result is received')
         if len(self.urls_processed) == len(self.urls):
             raise NoDataReceivedFromCaster()
-        _, error_code, error_text = self._curls_failed[0]
-        exception = PYCURL_ERRORS.get(error_code)
-        if exception:
-            raise exception(error_text)
+        for _, error_code, error_text in self._curls_failed:
+            if error_code == PYCURL_TIMEOUT_ERRNO:
+                raise ExceededTimeoutError(error_text)
+        if self._curls_failed:
+            _, _, error_text = self._curls_failed[0]
+            raise UnableToConnect(error_text)
         raise NoDataReceivedFromCaster()
 
     def teardown(self):
