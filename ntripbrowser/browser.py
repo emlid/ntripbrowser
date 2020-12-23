@@ -4,9 +4,9 @@ import pager
 
 from texttable import Texttable
 
-from ntripbrowser import NtripBrowser
-from ntripbrowser import ExceededTimeoutError, UnableToConnect, NoDataReceivedFromCaster
-from ntripbrowser import CAS_HEADERS, STR_HEADERS, NET_HEADERS
+from .ntripbrowser import NtripBrowser
+from .ntripbrowser import ExceededTimeoutError, UnableToConnect, NoDataReceivedFromCaster
+from .ntripbrowser import CAS_HEADERS, STR_HEADERS, NET_HEADERS
 
 
 SCREEN_WIDTH = pager.getwidth()
