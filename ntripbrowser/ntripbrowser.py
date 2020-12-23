@@ -79,7 +79,7 @@ class DataFetcher(object):
 
     @property
     def curls(self):
-        return self._buffers.keys()
+        return list(self._buffers.keys())
 
     @property
     def _result_found(self):
@@ -251,7 +251,7 @@ class NtripBrowser(object):
     def _form_dictionaries(headers, line_list):
         def form_line(index):
             line = index.split(';', len(headers))[1:]
-            return dict(zip(headers, line))
+            return dict(list(zip(headers, line)))
 
         return [form_line(i) for i in line_list]
 
