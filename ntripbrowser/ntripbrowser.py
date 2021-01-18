@@ -79,7 +79,7 @@ class DataFetcher(object):
 
     @property
     def curls(self):
-        return self._buffers.keys()
+        return list(self._buffers.keys())
 
     @property
     def _result_found(self):
