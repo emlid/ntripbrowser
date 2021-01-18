@@ -6,7 +6,7 @@ name = "pypi"
 [dev-packages]
 scandir = "*"
 pathlib2 = "*"
-pytest = "==4.6.0"
+pytest = "==6.2.1"
 pylint = "==1.9.3"
 "flake8" = "*"
 mock = "*"
