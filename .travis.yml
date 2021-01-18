@@ -3,6 +3,7 @@ cache: pip
 python:
 - '2.7'
 - '3.6'
+- '3.8'
 before_install:
 - sudo apt-get install libcurl4-openssl-dev
 install:
@@ -14,7 +15,7 @@ script:
 jobs:
   include:
     - stage: style-check
-      python: 3.6
+      python: 3.8
       script:
         - make style-check
         - make lint
