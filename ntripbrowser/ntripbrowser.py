@@ -280,7 +280,11 @@ class NtripBrowser(object):
 
     def _get_distance(self, obs_point):
         if self.coordinates:
-            return geodesic(obs_point, self.coordinates).kilometers
+            try:
+                return geodesic(obs_point, self.coordinates).kilometers
+            except ValueError:
+                logger.warning("Unable calculate the geodesic distance between points, %s, %s",
+                               obs_point, self.coordinates)
         return None
 
     def _trim_outlying(self, ntrip_dictionary):
