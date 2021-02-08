@@ -18,6 +18,12 @@ A Python API for browsing NTRIP (Networked Transport of RTCM via Internet Protoc
 
  -  or clone and run `make install`
 
+ - If you are looking for the last Python2 version of this package, checkout onto v2.2.3 tag. Python2 support will be discontinued in future releases. 
+
+```
+    git checkout v2.2.3
+```
+
 #### libcurl installation hints
 
  - installation via `apt`:
