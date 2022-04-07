@@ -41,7 +41,7 @@ except ImportError:
     from StringIO import StringIO as BytesIO  # Python 2
 
 from .constants import (CAS_HEADERS, STR_HEADERS, NET_HEADERS, PYCURL_TIMEOUT_ERRNO,
-                        MULTICURL_SELECT_TIMEOUT)
+                        MULTICURL_SELECT_TIMEOUT, CURLOPT_HTTP09_ALLOWED)
 from .exceptions import (ExceededTimeoutError, UnableToConnect, NoDataReceivedFromCaster)
 
 
@@ -106,6 +106,11 @@ class DataFetcher(object):
             curl.setopt(pycurl.CONNECTTIMEOUT, self.timeout)
             curl.setopt(pycurl.WRITEFUNCTION, buffer.write)
             curl.setopt(pycurl.WRITEDATA, buffer)
+            # starting from libcurl 7.66.0 HTTP/0.9 responses are not allowed by default
+            # but now there are still a lot of TCP services that
+            # can emit response that curl might consider to be HTTP/0.9
+            # https://curl.se/libcurl/c/CURLOPT_HTTP09_ALLOWED.html
+            curl.setopt(CURLOPT_HTTP09_ALLOWED, 1)
             self._buffers.update({curl: buffer})
 
     def read_data(self):
