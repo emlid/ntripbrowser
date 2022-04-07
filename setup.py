@@ -7,7 +7,7 @@ with open(path.join(this_directory, 'README.md')) as f:
 
 setup(
     name='ntripbrowser',
-    version='3.0.0',
+    version='3.0.1',
     author='Andrew Yushkevich, Alexander Yashin',
     author_email='andrew.yushkevich@emlid.com, alexandr.yashin@emlid.com',
     packages=['ntripbrowser'],
