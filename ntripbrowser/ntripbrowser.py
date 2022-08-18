@@ -41,7 +41,7 @@ except ImportError:
     from StringIO import StringIO as BytesIO  # Python 2
 
 from .constants import (CAS_HEADERS, STR_HEADERS, NET_HEADERS, PYCURL_TIMEOUT_ERRNO,
-                        MULTICURL_SELECT_TIMEOUT, CURLOPT_HTTP09_ALLOWED)
+                        MULTICURL_SELECT_TIMEOUT, CURLOPT_HTTP09_ALLOWED, NULL_ISLAND_COORDS)
 from .exceptions import (ExceededTimeoutError, UnableToConnect, NoDataReceivedFromCaster)
 
 
@@ -285,6 +285,9 @@ class NtripBrowser(object):
 
     def _get_distance(self, obs_point):
         if not self.coordinates or None in obs_point:
+            return None
+
+        if obs_point == NULL_ISLAND_COORDS:
             return None
 
         try:
