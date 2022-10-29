@@ -309,7 +309,10 @@ class NtripBrowser(object):
 
     def _trim_outlying_casters(self, ntrip_type_dictionary):
         def by_distance(row):
-            return row['Distance'] < self.maxdist
+            try:
+                return row['Distance'] < self.maxdist
+            except Exception:
+                return False
         inlying_casters = list(filter(by_distance, ntrip_type_dictionary))
         inlying_casters.sort(key=lambda row: row['Distance'])
         return inlying_casters
