@@ -85,7 +85,7 @@ browser.get_mountpoints()
 > Form of coordiantes must be `(x, y)` or `(x.x, y.y)` of latitude, longitude.
 
  - `maxdist`
-> Use `maxdist` to only report stations less than this number of km away from given coordinate.
+> Use `maxdist` to only report stations less than this number of km away from given coordinate. Stations lacking coordinates will not be returned.
 
 #### Result
 
