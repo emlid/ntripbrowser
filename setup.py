@@ -11,7 +11,7 @@ setup(
     author='Andrew Yushkevich, Alexander Yashin',
     author_email='andrew.yushkevich@emlid.com, alexandr.yashin@emlid.com',
     packages=['ntripbrowser'],
-    install_requires=['cchardet>=2.1.4', 'geopy>=1.14', 'texttable', 'pager', 'pycurl', 'cachecontrol>=0.12.4'],
+    install_requires=['cchardet>=2.2.0a2', 'geopy>=1.14', 'texttable', 'pager', 'pycurl', 'cachecontrol>=0.12.4'],
     tests_requires=['pytest', 'mock', 'tox'],
     license='BSD-3-Clause',
     url='https://github.com/emlid/ntripbrowser.git',
