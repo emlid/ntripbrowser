@@ -4,11 +4,8 @@ verify_ssl = true
 name = "pypi"
 
 [dev-packages]
-scandir = "*"
-pathlib2 = "*"
 pytest = "*"
 mock = "*"
-tox = "*"
 ruff = "*"
 
 [packages]
