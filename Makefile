@@ -5,10 +5,14 @@ init:
 	pipenv install --dev
 
 style-check:
-	pipenv run flake8 --config code-quality/python/flake8 ntripbrowser
+	pipenv run ruff format --check --config code-quality/python/ruff.toml ntripbrowser
 
 lint:
-	pipenv run pylint --rcfile code-quality/python/pylintrc ntripbrowser
+	pipenv run ruff check --config code-quality/python/ruff.toml ntripbrowser
+
+reformat:
+	pipenv run ruff format --config code-quality/python/ruff.toml ntripbrowser
+	pipenv run ruff check --fix --config code-quality/python/ruff.toml ntripbrowser
 
 test:
 	pipenv run pytest tests
