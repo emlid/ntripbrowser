@@ -246,3 +246,54 @@ def test_add_coordinates():
              }
         ]
     }
+
+def test_max_dist_trimmed():
+    near_parsed = {
+        'Mountpoint': 'near',
+        'ID': 'Rehakka',
+        'Format': 'RTCM 3.3',
+        'Format-Details': '1004(1),1005(10),1008(10),1012(1),1019(3),1020(2),1033(10),1042(3),1046(1),1077(1),1087(1),1097(1),1127(1),1230(30)',
+        'Carrier': '2',
+        'Nav-System': 'GPS+GLO+GAL+BDS',
+        'Network': 'SNIP',
+        'Country': 'FIN',
+        'Latitude': '1.1',
+        'Longitude': '2.2',
+        'NMEA': '1',
+        'Solution': '0',
+        'Generator': 'sNTRIP',
+        'Compr-Encryp': 'none',
+        'Authentication': 'B',
+        'Fee': 'N',
+        'Bitrate': '12220',
+        'Other Details': '',
+        'Distance': 24.8552454935518,
+    }
+    far_parsed = {
+        'Mountpoint': 'far',
+        'ID': 'Drummond',
+        'Format': 'RTCM 3.2',
+        'Format-Details': '1005(10),1074(1),1084(1),1094(1),1124(1),1230(1)',
+        'Carrier': '2',
+        'Nav-System': 'GPS+GLO+GAL+BDS',
+        'Network': 'SNIP',
+        'Country': 'BRA',
+        'Latitude': '10.1',
+        'Longitude': '20.2',
+        'NMEA': '1',
+        'Solution': '0',
+        'Generator': 'sNTRIP',
+        'Compr-Encryp': 'none',
+        'Authentication': 'B',
+        'Fee': 'N',
+        'Bitrate': '7300',
+        'Other Details': '',
+        'Distance': 2251.719387114077,
+    }
+    test_cases = {
+        50: [near_parsed],
+        2500: [near_parsed, far_parsed],
+    }
+    for maxdist, expected_str in test_cases.items():
+        browser = NtripBrowser('test', 1234, coordinates=(1.0, 2.0), maxdist=maxdist)
+        assert browser._process_raw_data(testing_content.VALID_NTRIP_TRIM_DISTANCE)['str'] == expected_str
