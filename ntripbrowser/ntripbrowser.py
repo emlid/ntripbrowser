@@ -132,6 +132,8 @@ class DataFetcher(object):
 
     def _read_multicurl_info(self):
         _, successful_curls, failed_curls = self._multicurl.info_read()
+        for suc_curl in successful_curls:
+            print(f'success = {suc_curl.getinfo(pycurl.EFFECTIVE_URL)}')
         self._curls_failed.extend(failed_curls)
         for curl in successful_curls:
             self._process_successful_curl(curl)
@@ -254,11 +256,18 @@ class NtripBrowser(object):
 
     @staticmethod
     def _form_dictionaries(headers, line_list):
+        if headers == STR_HEADERS:
+            for line in line_list:
+                print(line)
         def form_line(index):
             line = index.split(';', len(headers))[1:]
             return dict(list(zip(headers, line)))
-
-        return [form_line(i) for i in line_list]
+        
+        new_lines = [form_line(i) for i in line_list]
+        for line in new_lines:
+            if not line.get('Latitude') or not line.get('Longitude'):
+                print(line)
+        return new_lines
 
     def _add_distance(self, ntrip_dictionary):
         return {
@@ -309,6 +318,9 @@ class NtripBrowser(object):
 
     def _trim_outlying_casters(self, ntrip_type_dictionary):
         def by_distance(row):
+            distance = row['Distance']
+            if distance is None:
+                return False
             return row['Distance'] < self.maxdist
         inlying_casters = list(filter(by_distance, ntrip_type_dictionary))
         inlying_casters.sort(key=lambda row: row['Distance'])
