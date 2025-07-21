@@ -297,3 +297,34 @@ def test_max_dist_trimmed():
     for maxdist, expected_str in test_cases.items():
         browser = NtripBrowser('test', 1234, coordinates=(1.0, 2.0), maxdist=maxdist)
         assert browser._process_raw_data(testing_content.VALID_NTRIP_TRIM_DISTANCE)['str'] == expected_str
+
+
+def test_caster_no_distance_processed():
+    near_parsed = {
+        'Mountpoint': 'near',
+        'ID': 'Rehakka',
+        'Format': 'RTCM 3.3',
+        'Format-Details': '1004(1),1005(10),1008(10),1012(1),1019(3),1020(2),1033(10),1042(3),1046(1),1077(1),1087(1),1097(1),1127(1),1230(30)',
+        'Carrier': '2',
+        'Nav-System': 'GPS+GLO+GAL+BDS',
+        'Network': 'SNIP',
+        'Country': 'FIN',
+        'Latitude': '1.1',
+        'Longitude': '2.2',
+        'NMEA': '1',
+        'Solution': '0',
+        'Generator': 'sNTRIP',
+        'Compr-Encryp': 'none',
+        'Authentication': 'B',
+        'Fee': 'N',
+        'Bitrate': '12220',
+        'Other Details': '',
+        'Distance': 24.8552454935518,
+    }
+
+    browser = NtripBrowser('test', 1234, coordinates=(1.0, 2.0), maxdist=50)
+    assert browser._process_raw_data(testing_content.VALID_NTRIP_NO_BASE_POINT) == {
+        'cas': [],
+        'net': [],
+        'str': [near_parsed],
+    }
