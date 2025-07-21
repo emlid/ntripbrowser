@@ -30,25 +30,27 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import logging
+from io import BytesIO
+
+import cchardet
+import pycurl
 from geopy.distance import geodesic
 
-import pycurl
-import cchardet
-
-try:
-    from io import BytesIO  # Python 3
-except ImportError:
-    from StringIO import StringIO as BytesIO  # Python 2
-
-from .constants import (CAS_HEADERS, STR_HEADERS, NET_HEADERS, PYCURL_TIMEOUT_ERRNO,
-                        MULTICURL_SELECT_TIMEOUT, CURLOPT_HTTP09_ALLOWED, NULL_ISLAND_COORDS)
-from .exceptions import (ExceededTimeoutError, UnableToConnect, NoDataReceivedFromCaster)
-
+from .constants import (
+    CAS_HEADERS,
+    CURLOPT_HTTP09_ALLOWED,
+    MULTICURL_SELECT_TIMEOUT,
+    NET_HEADERS,
+    NULL_ISLAND_COORDS,
+    PYCURL_TIMEOUT_ERRNO,
+    STR_HEADERS,
+)
+from .exceptions import ExceededTimeoutError, NoDataReceivedFromCaster, UnableToConnect
 
 logger = logging.getLogger(__name__)
 
 
-class DataFetcher(object):
+class DataFetcher:
     """Fetch data from specified urls, execute custom callback on results.
 
     Parameters
@@ -67,6 +69,7 @@ class DataFetcher(object):
     result :
         Return value of `parser_method` function or None.
     """
+
     def __init__(self, urls, timeout, parser_method):
         self.timeout = timeout
         self.urls = urls
@@ -92,7 +95,7 @@ class DataFetcher(object):
         self._buffers = {}
         self._curls_failed = []
         self._initialize()
-        logger.info('DataFetcher: curls setup in process')
+        logger.info("DataFetcher: curls setup in process")
         for curl in self.curls:
             self._multicurl.add_handle(curl)
 
@@ -133,7 +136,7 @@ class DataFetcher(object):
     def _read_multicurl_info(self):
         _, successful_curls, failed_curls = self._multicurl.info_read()
         for suc_curl in successful_curls:
-            print(f'success = {suc_curl.getinfo(pycurl.EFFECTIVE_URL)}')
+            print(f"success = {suc_curl.getinfo(pycurl.EFFECTIVE_URL)}")
         self._curls_failed.extend(failed_curls)
         for curl in successful_curls:
             self._process_successful_curl(curl)
@@ -161,7 +164,7 @@ class DataFetcher(object):
         - Otherwise, there are no failed curls and all curls which are succeeds
         received no data from the caster, so throw a NoDataReceivedFromCaster.
         """
-        logger.info('DataFetcher: No valid result is received')
+        logger.info("DataFetcher: No valid result is received")
         if len(self.urls_processed) == len(self.urls):
             raise NoDataReceivedFromCaster()
         for _, error_code, error_text in self._curls_failed:
@@ -178,13 +181,19 @@ class DataFetcher(object):
         self._multicurl.close()
         for curl in self.curls:
             curl.close()
-        logger.info('DataFetcher: Curls are closed succesfully')
+        logger.info("DataFetcher: Curls are closed succesfully")
         self._buffers = {}
 
 
-class NtripBrowser(object):
-    def __init__(self, host, port=2101, timeout=4,  # pylint: disable-msg=too-many-arguments
-                 coordinates=None, maxdist=None):
+class NtripBrowser:
+    def __init__(
+        self,
+        host,
+        port=2101,
+        timeout=4,
+        coordinates=None,
+        maxdist=None,
+    ):
         self._host = None
         self.host = host
         self.port = port
@@ -199,16 +208,16 @@ class NtripBrowser(object):
 
     @host.setter
     def host(self, host):
-        host = host.replace('http://', '')
-        host = host.replace('https://', '')
+        host = host.replace("http://", "")
+        host = host.replace("https://", "")
         self._host = host
 
     @property
     def urls(self):
-        http_url = '{}{}:{}'.format('http://', self.host, self.port)
-        https_url = '{}{}:{}'.format('https://', self.host, self.port)
-        http_sourcetable_url = '{}{}'.format(http_url, '/sourcetable.txt')
-        https_sourcetable_url = '{}{}'.format(https_url, '/sourcetable.txt')
+        http_url = "{}{}:{}".format("http://", self.host, self.port)
+        https_url = "{}{}:{}".format("https://", self.host, self.port)
+        http_sourcetable_url = "{}{}".format(http_url, "/sourcetable.txt")
+        https_sourcetable_url = "{}{}".format(https_url, "/sourcetable.txt")
         return [http_url, http_sourcetable_url, https_url, https_sourcetable_url]
 
     def get_mountpoints(self):
@@ -226,8 +235,8 @@ class NtripBrowser(object):
 
     @staticmethod
     def _decode_data(data):
-        data_encoding = cchardet.detect(data)['encoding']
-        return data.decode('utf8' if not data_encoding else data_encoding)
+        data_encoding = cchardet.detect(data)["encoding"]
+        return data.decode("utf8" if not data_encoding else data_encoding)
 
     def _get_ntrip_tables(self, data):
         ntrip_tables = self._extract_ntrip_entry_strings(data)
@@ -239,19 +248,19 @@ class NtripBrowser(object):
     def _extract_ntrip_entry_strings(raw_table):
         str_list, cas_list, net_list = [], [], []
         for row in raw_table.splitlines():
-            if row.startswith('STR'):
+            if row.startswith("STR"):
                 str_list.append(row)
-            elif row.startswith('CAS'):
+            elif row.startswith("CAS"):
                 cas_list.append(row)
-            elif row.startswith('NET'):
+            elif row.startswith("NET"):
                 net_list.append(row)
         return str_list, cas_list, net_list
 
     def _form_ntrip_entries(self, ntrip_tables):
         return {
-            'str': self._form_dictionaries(STR_HEADERS, ntrip_tables[0]),
-            'cas': self._form_dictionaries(CAS_HEADERS, ntrip_tables[1]),
-            'net': self._form_dictionaries(NET_HEADERS, ntrip_tables[2])
+            "str": self._form_dictionaries(STR_HEADERS, ntrip_tables[0]),
+            "cas": self._form_dictionaries(CAS_HEADERS, ntrip_tables[1]),
+            "net": self._form_dictionaries(NET_HEADERS, ntrip_tables[2]),
         }
 
     @staticmethod
@@ -259,34 +268,35 @@ class NtripBrowser(object):
         if headers == STR_HEADERS:
             for line in line_list:
                 print(line)
+
         def form_line(index):
-            line = index.split(';', len(headers))[1:]
+            line = index.split(";", len(headers))[1:]
             return dict(list(zip(headers, line)))
-        
+
         new_lines = [form_line(i) for i in line_list]
         for line in new_lines:
-            if not line.get('Latitude') or not line.get('Longitude'):
+            if not line.get("Latitude") or not line.get("Longitude"):
                 print(line)
         return new_lines
 
     def _add_distance(self, ntrip_dictionary):
         return {
-            'cas': self._add_distance_column(ntrip_dictionary.get('cas')),
-            'net': self._add_distance_column(ntrip_dictionary.get('net')),
-            'str': self._add_distance_column(ntrip_dictionary.get('str'))
+            "cas": self._add_distance_column(ntrip_dictionary.get("cas")),
+            "net": self._add_distance_column(ntrip_dictionary.get("net")),
+            "str": self._add_distance_column(ntrip_dictionary.get("str")),
         }
 
     def _add_distance_column(self, ntrip_type_dictionary):
         for station in ntrip_type_dictionary:
-            latlon = self._get_float_coordinates((station.get('Latitude'), station.get('Longitude')))
-            station['Distance'] = self._get_distance(latlon)
+            latlon = self._get_float_coordinates((station.get("Latitude"), station.get("Longitude")))
+            station["Distance"] = self._get_distance(latlon)
         return ntrip_type_dictionary
 
     @staticmethod
     def _get_float_coordinates(obs_point):
         def to_float(arg):
             try:
-                return float(arg.replace(',', '.'))
+                return float(arg.replace(",", "."))
             except (ValueError, AttributeError):
                 return None
 
@@ -302,26 +312,26 @@ class NtripBrowser(object):
         try:
             return geodesic(obs_point, self.coordinates).kilometers
         except ValueError:
-            logger.warning("Unable calculate the geodesic distance between points, %s, %s",
-                           obs_point, self.coordinates)
+            logger.warning("Unable calculate the geodesic distance between points, %s, %s", obs_point, self.coordinates)
 
         return None
 
     def _trim_outlying(self, ntrip_dictionary):
         if (self.maxdist is not None) and (self.coordinates is not None):
             return {
-                'cas': self._trim_outlying_casters(ntrip_dictionary.get('cas')),
-                'net': self._trim_outlying_casters(ntrip_dictionary.get('net')),
-                'str': self._trim_outlying_casters(ntrip_dictionary.get('str'))
+                "cas": self._trim_outlying_casters(ntrip_dictionary.get("cas")),
+                "net": self._trim_outlying_casters(ntrip_dictionary.get("net")),
+                "str": self._trim_outlying_casters(ntrip_dictionary.get("str")),
             }
         return ntrip_dictionary
 
     def _trim_outlying_casters(self, ntrip_type_dictionary):
         def by_distance(row):
-            distance = row['Distance']
+            distance = row["Distance"]
             if distance is None:
                 return False
-            return row['Distance'] < self.maxdist
+            return row["Distance"] < self.maxdist
+
         inlying_casters = list(filter(by_distance, ntrip_type_dictionary))
-        inlying_casters.sort(key=lambda row: row['Distance'])
+        inlying_casters.sort(key=lambda row: row["Distance"])
         return inlying_casters
