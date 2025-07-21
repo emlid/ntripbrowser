@@ -7,10 +7,9 @@ name = "pypi"
 scandir = "*"
 pathlib2 = "*"
 pytest = "*"
-pylint = "*"
-"flake8" = "*"
 mock = "*"
 tox = "*"
+ruff = "*"
 
 [packages]
 cchardet = "==2.2.0a2"
