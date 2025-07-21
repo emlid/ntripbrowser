@@ -222,7 +222,7 @@ def test_add_coordinates():
         'net': [
             {
                 'Authentication': 'B',
-                'Distance': 248.57556516798113,
+                'Distance': None,
                 'Fee': 'N',
                 'ID': 'Str1',
                 'Operator': 'Str2',
@@ -236,7 +236,7 @@ def test_add_coordinates():
             {
                 'Carrier': 'https://example2.htm',
                 'Country': 'none',
-                'Distance': 248.57556516798113,
+                'Distance': None,
                 'Format': 'B',
                 'Format-Details': 'N',
                 'ID': 'Str4',
